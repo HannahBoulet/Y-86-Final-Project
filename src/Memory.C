@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "Memory.h"
+#include "Tools.h"
 
 //memInstance will be initialized to the single instance
 //of the Memory class
@@ -12,6 +13,7 @@ Memory * Memory::memInstance = NULL;
  */
 Memory::Memory()
 {
+   Memory::mem[Memory::size] = 0;
 }
 
 /**
@@ -23,7 +25,11 @@ Memory::Memory()
  */
 Memory * Memory::getInstance()
 {
-   return NULL;
+   if(memInstance== NULL)
+   {
+      memInstance= new Memory();
+   }
+   return memInstance;
 }
 
 /**
@@ -40,7 +46,7 @@ Memory * Memory::getInstance()
 uint64_t Memory::getLong(int32_t address, bool & imem_error)
 {
    //Use Memory::size to check if an address is valid
-   return 0;
+
 }
 
 /**
