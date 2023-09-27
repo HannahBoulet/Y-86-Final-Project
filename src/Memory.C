@@ -25,9 +25,9 @@ Memory::Memory()
  */
 Memory * Memory::getInstance()
 {
-   if(memInstance== NULL)
+   if(memInstance == NULL)
    {
-      memInstance= new Memory();
+      memInstance = new Memory();
    }
    return memInstance;
 }
@@ -46,7 +46,13 @@ Memory * Memory::getInstance()
 uint64_t Memory::getLong(int32_t address, bool & imem_error)
 {
    //Use Memory::size to check if an address is valid
-
+   if (address % 8 == 0 && address < Memory::size && address >= 0) {
+      imem_error = false;
+      return Tools::buildLong(&mem[address]);
+   } else {
+      imem_error = true;
+      return 0;
+   }
 }
 
 /**
@@ -62,7 +68,12 @@ uint64_t Memory::getLong(int32_t address, bool & imem_error)
 uint8_t Memory::getByte(int32_t address, bool & imem_error)
 {
    //Use Memory::size to check if an address is valid
-   return 0;
+   if (address < Memory::size && address >= 0) {
+      imem_error = false;
+      return mem[address];
+    }
+    imem_error = true;
+    return 0;
 }
 
 /**
@@ -78,7 +89,14 @@ uint8_t Memory::getByte(int32_t address, bool & imem_error)
 void Memory::putLong(uint64_t value, int32_t address, bool & imem_error)
 {
    //Use Memory::size to check if an address is valid
-   return;
+   if (address % 8 == 0 && (address >= 0 && address < Memory::size)) {
+      imem_error = false;
+      for (int i = 0; i < 8; i+=1) {
+         mem[address + i] = Tools::getByte(value, i);
+      }
+   } else {
+      imem_error = true;
+   }
 }
 
 /**
@@ -95,7 +113,12 @@ void Memory::putLong(uint64_t value, int32_t address, bool & imem_error)
 void Memory::putByte(uint8_t value, int32_t address, bool & imem_error)
 {
    //Use Memory::size to check if an address is valid
-   return;
+   if (address >= 0 && address < Memory::size) {
+      imem_error = false;
+      mem[address] = value;
+    } else {
+      imem_error = true;
+    }
 }
 
 /**
