@@ -71,15 +71,29 @@ bool Loader::openFile()
    //If the user didn't supply a command line argument (inputFile is NULL)
    //then print the Loader::usage error message and return false
    //(Note: Loader::usage is a static const defined in Loader.h)
-
+  if(inputFile == NULL)
+  {
+      mem->dump();
+      return printErrMsg(Loader::usage,-1, NULL);
+  }
    //If the filename is badly formed (needs to be at least 4 characters
    //long and end with .yo) then print the Loader::badfile error message 
    //and return false
-   
+   bool error;
+   if((inputFile -> isSubString((char*)".yo", inputFile-> get_length() - 3, error)) == false)
+   {
+      return printErrMsg(Loader::badfile, -1, NULL);
+   }
    //Open the file using an std::ifstream open
    //If the file can't be opened then print the Loader::openerr message 
    //and return false
-
+   std::ifstream ifs;
+   ifs.open(inputFile->String::get_cstr(), std::ifstream::in);
+   if(!ifs.is_open())
+   {
+     mem->dump();
+     return printErrMsg(Loader::openerr, -1, NULL);
+   }
    return true;  //file name is good and file open succeeded
 }
 
@@ -107,7 +121,7 @@ bool Loader::load()
       //String class methods
       String inputLine(line);
       //TODO
-
+      
       //Note: there are two kinds of records: data and comment
       //      A data record begins with a "0x"
       //
