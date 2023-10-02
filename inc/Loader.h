@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include "Memory.h"
-
+#include "String.h"
 #ifndef LOADER_H
 #define LOADER_H
 class Loader

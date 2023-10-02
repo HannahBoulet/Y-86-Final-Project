@@ -2,6 +2,7 @@
 #include <string>   //for std::string functions
 #include <string.h> //for c-string functions (strlen, strcpy, ..)
 #include "String.h"
+#include <assert.h>
 
 /*
  * String
