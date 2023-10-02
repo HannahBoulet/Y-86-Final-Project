@@ -1,19 +1,16 @@
-#lab4 makefile (complete)
+#lab5 makefile (complete)
+BIN = ../bin
 
-#unit tests
-UNIT = unit
-#object directory
-OBJ = obj
-#source directory
-SRC = src
-#bin directory
-BIN = bin
-#executables
-EXE = lab4
+yess:
+	(cd src && make $(BIN)/yess)
+	(cd bin && ./run.sh)
+
+runlab5:
+	(cd unit && make runlab5)
 
 runlab4:
-	(cd $(UNIT) && make runlab4)
+	(cd unit && make runlab4)
 
 clean:
-	(cd $(OBJ) && rm -f *.o)
-	(cd $(BIN) && rm -f $(EXE))
+	(cd bin && rm -f lab4 & rm -f lab5 & rm -f yess)
+	(cd obj && rm -f *.o)
