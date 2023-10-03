@@ -2,7 +2,7 @@
 BIN = ../bin
 
 yess:
-	(cd src && make $(BIN)/yess)
+	(cd src && make yess)
 	(cd bin && ./run.sh)
 
 runlab5:

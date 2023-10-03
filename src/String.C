@@ -25,13 +25,11 @@ String::String(std::string str)
    //Copy the characters in the std::string (excluding a NULL)
    //into your str array.
    //Set length to the size of the array.
-    str = new char[str.length()];
-
+   length = str.size();
+   this -> str = new char[length];
    for (int i = 0; i < length ; i++) {
       this->str[i] = str[i];
    }
-
-   this->length = str.length();
 }
 
 /*
@@ -79,7 +77,7 @@ std::string String::get_stdstr()
 int32_t String::get_length()
 {
    //TODO
-   return 0;  
+   return length;  
 }
 
 /*
