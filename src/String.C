@@ -66,7 +66,12 @@ std::string String::get_stdstr()
    //TODO
    //You need to declare std::string and append the characters
    //from your str array to it
-   return 0;  //change this
+   std::string stdstr;
+
+   for (int i = 0; i < length; i++) {
+      stdstr += str[i];
+   }
+   return stdstr;  //change this
 }
 
 /*
@@ -89,6 +94,10 @@ int32_t String::get_length()
 bool String::badIndex(int32_t idx)
 {
    //TODO
+   if (idx < 0 || idx >= length) {
+      return true;
+   }
+
    return false; 
 }
 
@@ -118,7 +127,27 @@ bool String::isRepeatingChar(char what, int32_t startIdx,
    //TODO
    //use your badIndex method to check if the
    //starting and ending indices are valid
-   return false;
+   if (len < 0) {
+      error = true;
+      return false;
+   }
+   int32_t endIdx = startIdx + len - 1;
+
+   // First case
+   if (badIndex(startIdx) || badIndex(endIdx)) {
+      error = true;
+      return false;
+   }
+   // Second case
+   for (int32_t i = startIdx; i <= endIdx; i++) {
+      if (str[i] != what) {
+         error = false;
+         return false;
+      }
+   }
+   // Third case
+   error = false;
+   return true;
 }
 
 /*
