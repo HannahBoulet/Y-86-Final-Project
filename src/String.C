@@ -183,8 +183,42 @@ uint32_t String::convert2Hex(int32_t startIdx, int32_t len, bool & error)
    //First time through loop: result = 0x2
    //Second time through loop: result = 0x2a
    //Third time through loop: result = 0x2af
+   if (len < 0) {
+      error = true;
+      return false;
+   }
+   // indices invalid, case 2
+   int32_t endIdx = startIdx + len - 1;
+   if (badIndex(startIdx) || badIndex(endIdx)) {
+      error = true;
+      return 0;
+   }
 
-   return 0;
+   // indices valid, checking if hex
+   uint32_t result = 0;
+   //case 1
+   for (int32_t i = startIdx; i < startIdx + len; i++) {
+      char ch = str[i];
+      uint32_t value;
+      // case 1
+      if (ch >= '0' && ch <= '9') {
+         value = (ch - '0');
+      }
+      else if (ch >= 'a' && ch <= 'f') {
+         value = 10 + (ch - 'a');
+      }
+      else if (ch >= 'A' && ch <= 'F') {
+         value = 10 + (ch - 'A');
+      }
+      else {
+         error = true;
+         return 0;
+      }
+
+      result = (result << 4) + value;
+   }
+   error = false;
+   return result;
 }
 
 /* 
