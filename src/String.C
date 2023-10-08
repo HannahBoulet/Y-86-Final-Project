@@ -97,7 +97,6 @@ bool String::badIndex(int32_t idx)
    if (idx < 0 || idx >= length) {
       return true;
    }
-
    return false; 
 }
 
@@ -184,9 +183,7 @@ uint32_t String::convert2Hex(int32_t startIdx, int32_t len, bool & error)
    //First time through loop: result = 0x2
    //Second time through loop: result = 0x2a
    //Third time through loop: result = 0x2af
-   //case 1
-   //case 2
-   //case 3
+
    return 0;
 }
 
@@ -203,7 +200,7 @@ bool String::isChar(char what, int32_t idx, bool & error)
 {
    //TODO
    //case 1
-   if (idx < 0 || idx >= get_length()) {
+   if (idx < 0 || idx >= length) {
       error = true;
       return false;
    }
@@ -239,21 +236,19 @@ bool String::isChar(char what, int32_t idx, bool & error)
 bool String::isHex(int32_t startIdx, int len, bool & error)
 {
    //TODO
-
    //case 1
-   if(startIdx < 0 ||  len < 0 || startIdx + len > get_length())
+   if(startIdx < 0 || len < 0 || startIdx + len > length)
    {
       error = true;
       return false;
    }
-
    //case 2
-   for (int i = startIdx; i < startIdx + len; ++i) {
-        char c = str[i];
-        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-            error = false;
-            return false;
-        }
+   for (int32_t i = startIdx; i < startIdx + len; ++i) {
+      char c = str[i];
+      if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+         error = false;
+         return false;
+      }
     }
    //case 2
    error = false; 
@@ -277,7 +272,25 @@ bool String::isHex(int32_t startIdx, int len, bool & error)
 bool String::isSubString(const char * subStr, int32_t startIdx, bool & error)
 {
    //TODO
-   return false;
+   //variables
+   int32_t sub = (int32_t)strlen(subStr); 
+   int32_t subPlace = 0;
+   //case 1
+   if (startIdx < 0 || (sub + startIdx) > length){
+      error = true;
+      return false;
+   }
+   //case 2
+   for (int32_t i = startIdx; i < sub; i++){
+      if (subStr[subPlace] != str[i]){
+         error = false;
+         return false;
+      }
+      subPlace++;
+   }
+   //case 3
+   error = false;
+   return true;
 }
 
 
@@ -299,7 +312,25 @@ bool String::isSubString(std::string subStr, int32_t startIdx,
                          bool & error)
 {  
    //TODO
-   return false;
+   //variables 
+   int32_t sub = (int32_t)subStr.length();
+   int32_t subPlace = 0;
+   //case 1
+   if (startIdx < 0 || (startIdx + sub) > length){
+      error = true;
+      return false;
+   }
+   //case 2
+   for (int32_t i = startIdx; i < sub; i++){
+      if (subStr[subPlace] != str[i]){
+         error = false;
+         return false;
+      }
+      subPlace++;
+   }
+   //case 3
+   error = false;
+   return true;
 }
 
  
