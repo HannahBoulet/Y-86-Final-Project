@@ -202,7 +202,21 @@ uint32_t String::convert2Hex(int32_t startIdx, int32_t len, bool & error)
 bool String::isChar(char what, int32_t idx, bool & error)
 {
    //TODO
-   return false;
+   //case 1
+   if (idx < 0 || idx >= get_length()) {
+      error = true;
+      return false;
+   }
+   //case 2
+   else if (str[idx] == what) {
+      error = false;
+      return true;
+   }
+   //case 3 
+   else {
+      error = false;
+      return false;
+   }
 } 
 
 /* 
