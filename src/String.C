@@ -184,6 +184,9 @@ uint32_t String::convert2Hex(int32_t startIdx, int32_t len, bool & error)
    //First time through loop: result = 0x2
    //Second time through loop: result = 0x2a
    //Third time through loop: result = 0x2af
+   //case 1
+   //case 2
+   //case 3
    return 0;
 }
 
@@ -222,7 +225,25 @@ bool String::isChar(char what, int32_t idx, bool & error)
 bool String::isHex(int32_t startIdx, int len, bool & error)
 {
    //TODO
-   return false;
+
+   //case 1
+   if(startIdx < 0 ||  len < 0 || startIdx + len > get_length())
+   {
+      error = true;
+      return false;
+   }
+
+   //case 2
+   for (int i = startIdx; i < startIdx + len; ++i) {
+        char c = str[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+            error = false;
+            return false;
+        }
+    }
+   //case 2
+   error = false; 
+   return true;
 } 
 
 /*
