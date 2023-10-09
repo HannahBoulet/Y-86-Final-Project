@@ -284,7 +284,7 @@ bool String::isHex(int32_t startIdx, int len, bool & error)
          return false;
       }
     }
-   //case 2
+   //case 3
    error = false; 
    return true;
 } 

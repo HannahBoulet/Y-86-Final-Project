@@ -31,10 +31,12 @@ class Loader
 
       bool openFile();      //check file name for correctness and open it
       bool printErrMsg(int32_t, int32_t, String *);  //print error message
+     
 
       //TODO
       //add declarations for other methods used by your loader
-      
+      bool checkComment(String inputLine);
+      bool checkData(String inputLine);
    public:
       //methods called outside of class
       Loader(int argc, char * argv[], Memory * mem);

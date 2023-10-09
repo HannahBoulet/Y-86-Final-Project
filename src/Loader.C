@@ -80,7 +80,7 @@ bool Loader::openFile()
    //long and end with .yo) then print the Loader::badfile error message 
    //and return false
    bool error;
-   if((inputFile -> isSubString((char*)".yo", inputFile-> get_length() - 3, error)) == false)
+   if((inputFile -> String::isSubString((char*)".yo", inputFile-> get_length() - 3, error)) == false)
    {
       return printErrMsg(Loader::badfile, -1, NULL);
    }
@@ -128,12 +128,15 @@ bool Loader::load()
       //If the line is a data record with errors
       //then print the Loader::baddata error message and return false
       //
+
       //If the line is a comment record with errors
       //then print the Loader::badcomment error message and return false
       //
+
       //Otherwise, load any data on the line into
       //memory
       //
+
       //Don't do all of this work in this method!
       //Break the work up into multiple single purpose methods
 
@@ -148,3 +151,27 @@ bool Loader::load()
 //In your code, be sure to use the static const variables defined in 
 //Loader.h to grab specific fields from the input line.
 
+//checkComment
+//ifnot data and doesnt start w 0x empty space.
+//checkData
+//starts w 0x check for invalid stuff check for hex
+//checkload
+//load into memory once done w above.
+
+bool Loader::checkData(String inputLine){
+//if(inputLine.startwith("0x"))
+//{
+  //make sure hex up until :
+  //checks if space after : 
+  //need to check to make sure memory after : is 0-10 long also is hex (divide by 2 to check unless its 1 or 0)
+  //make sure the memory is greater then memory address before.
+  
+
+//}
+return false;
+} 
+
+bool Loader::checkComment(String inputLine){
+//checkif emptyline lol :3
+return false;
+}
