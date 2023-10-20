@@ -35,8 +35,11 @@ class Loader
 
       //TODO
       //add declarations for other methods used by your loader
-      bool checkComment(String inputLine);
-      bool checkData(String inputLine);
+      bool checkComment(String * inputLine);
+      bool checkData(String * inputLine);
+      bool checkValid(String * inputLine);
+      bool empty(String * inputLine);
+      void memoryLoad(String * s);
    public:
       //methods called outside of class
       Loader(int argc, char * argv[], Memory * mem);

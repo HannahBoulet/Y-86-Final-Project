@@ -116,18 +116,23 @@ bool Loader::load()
     {
       String inputLine(line);
       if (!empty(&inputLine)) {
-         if(checkComment(&inputLine))
+         if(!checkData(&inputLine))
          {
-         return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
-        }
-        if (checkData(&inputLine)) {
-            return printErrMsg(Loader::baddata, lineNumber, &inputLine);
-        }
-        }
+            if(checkComment(&inputLine))
+            {
+               return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
+            }
+         }
+         if(checkData(&inputLine))
+         {
+            if (checkValid(&inputLine)) {
+               return printErrMsg(Loader::baddata, lineNumber, &inputLine);
+            }
+         }
+      }
         memoryLoad(&inputLine);
         lineNumber++;
     }
-
     return true;  // load succeeded
 }
 
@@ -154,17 +159,25 @@ void Loader::memoryLoad(String * s)
    }
    
 }
-
 /*
-
+Check if is data aka if 0x is in front if not it is comment
 */
-bool Loader::checkData(String * inputLine) {
+bool Loader::checkData(String * inputLine)
+{
    bool error = false;
-   // Validate address format (0xhhh:)
    if(!inputLine->isSubString("0x", Loader::addrbegin, error))
    {
       return false;
    }
+   return true;
+}
+
+/*
+
+*/
+bool Loader::checkValid(String * inputLine) {
+   bool error = false;
+   // Validate address format (0xhhh:)
    if (!inputLine->isHex(Loader::addrbegin, 3, error) || !inputLine->isChar(':', Loader::addrend, error)) {
       return false;
    }
@@ -196,10 +209,6 @@ where columns 0 .. 27 contain space characters (' ')
  */
 bool Loader::checkComment(String * inputLine) {
    bool error = false;
-   if(inputLine->isSubString("0x", Loader::addrbegin, error))
-   {
-      return false;
-   }
    // Validate spaces in columns 0 .. 27
    if (!inputLine->isRepeatingChar(' ', 0, Loader::comment, error)) {
       return false;
