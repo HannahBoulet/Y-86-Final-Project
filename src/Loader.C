@@ -71,11 +71,10 @@ bool Loader::openFile()
    //If the user didn't supply a command line argument (inputFile is NULL)
    //then print the Loader::usage error message and return false
    //(Note: Loader::usage is a static const defined in Loader.h)
-  if(this->inputFile == NULL)
-  {
-      mem->dump();
+   if(this->inputFile == NULL)
+   {
       return printErrMsg(Loader::usage,-1, NULL);
-  }
+   }
    //If the filename is badly formed (needs to be at least 4 characters
    //long and end with .yo) then print the Loader::badfile error message 
    //and return faclse
@@ -87,9 +86,9 @@ bool Loader::openFile()
    //Open the file using an std::ifstream open
    //If the file can't be opened then print the Loader::openerr message 
    //and return false
-   if(!inf)
+   inf.open(inputFile->String::get_cstr(), std::ifstream::in);
+   if(!inf.is_open())
    {
-   mem->dump();
    return printErrMsg(Loader::openerr, -1, NULL);
    }
    return true;  //file name is good and file open succeeded
@@ -108,12 +107,12 @@ bool Loader::openFile()
 */   
 bool Loader::load()
 {
-    if (!openFile()) return false;
+   if (!openFile()) return false;
 
-    std::string line;
-    int lineNumber = 1;  // needed if an error is found
-    while (getline(inf, line))
-    {
+   std::string line;
+   int lineNumber = 1;  //needed if an error is found
+   while (getline(inf, line))
+   {
       String inputLine(line);
       if (!empty(&inputLine)) {
          if(!checkData(&inputLine))
@@ -143,6 +142,7 @@ bool Loader::load()
 /*
 MemoryLoad:
 Loads memory in.
+
 */
 void Loader::memoryLoad(String * s)
 {
@@ -177,8 +177,8 @@ bool Loader::checkData(String * inputLine)
 */
 bool Loader::checkValid(String * inputLine) {
    bool error = false;
-   // Validate address format (0xhhh:)
-   if (!inputLine->isHex(Loader::addrbegin, 3, error) || !inputLine->isChar(':', Loader::addrend, error)) {
+   // Validate address format (hhh:)
+   if (!inputLine->isHex(Loader::addrbegin, 3, error) && !inputLine->isChar(':', Loader::addrend + 1, error)) {
       return false;
    }
    // Validate data format (up to 10 bytes of hex data)
