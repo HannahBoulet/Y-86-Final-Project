@@ -6,8 +6,10 @@ BIN = ../bin
 OBJD = ../obj
 CFLAGS = -g -c -Wall -std=c++11 -I $(INC)
 
-
-
+#rule to match .C with object in another directory
+$(OBJD)/%.o: %.C 
+	@mkdir -p $(OBJD)
+	$(CC) $(CFLAGS) $< -o $(OBJD)/$@
 
 # 1) need a macro for the .o files corresponding to the .C 
 #    files in this directory (note they will be stored in the ../obj
@@ -17,19 +19,19 @@ OBJS := $(OBJD)/Memory.o $(OBJD)/RegisterFile.o $(OBJD)/Tools.o $(OBJD)/Conditio
 #    that is dependent upon the .o files. With this target, you can type:
 #    make all
 #    and all of the .C files will be compiled
-TARGETS = $(BIN)/yess $(BIN)/runlab4 $(OBJD)/runlab4.o $(OBJS)
-
 yess: $(OBJS)
 	$(CC) $(OBJS) -o $(BIN)/yess
 
-#rule to match .C with object in another directory
-$(OBJD)/%.o: %.C 
-	@mkdir -p $(OBJD)
-	$(CC) $(CFLAGS) $< -o $@
+help:
+	@echo "make all to compile for lab4."
+	@echo "Run make all to compile all the .C files"
+	@echo "Run make yess to run phony"
+
+
+all:$(OBJS)
 
 # 3) need a .o target for each .C
 #    Remember each of these is dependent upon the .h files included by the .C
-all:$(OBJS)
 
 $(OBJD)/ConditionCodes.o: $(INC)/ConditionCodes.h $(INC)/Tools.h
 
@@ -50,10 +52,3 @@ $(OBJD)/Loader.o: $(INC)/Memory.h $(INC)/String.h $(INC)/Loader.h
 #    the .C files in this directory from the ../obj directory
 clean:
 	rm -f $(OBJD)/*
-	rm 0f $(BIN)/yess
-
-help:
-	@echo "make all to compile for lab4."
-	@echo "Run make all to compile all the .C files"
-	@echp "Run make yess to run phony"
-
