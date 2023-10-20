@@ -71,28 +71,26 @@ bool Loader::openFile()
    //If the user didn't supply a command line argument (inputFile is NULL)
    //then print the Loader::usage error message and return false
    //(Note: Loader::usage is a static const defined in Loader.h)
-  if(inputFile == NULL)
+  if(this->inputFile == NULL)
   {
       mem->dump();
       return printErrMsg(Loader::usage,-1, NULL);
   }
    //If the filename is badly formed (needs to be at least 4 characters
    //long and end with .yo) then print the Loader::badfile error message 
-   //and return false
+   //and return faclse
    bool error;
-   if((inputFile -> String::isSubString((char*)".yo", inputFile-> get_length() - 3, error)) == false)
+   if((this->inputFile -> String::isSubString((char*)".yo", inputFile-> get_length() - 3, error)) == false)
    {
       return printErrMsg(Loader::badfile, -1, NULL);
    }
    //Open the file using an std::ifstream open
    //If the file can't be opened then print the Loader::openerr message 
    //and return false
-   std::ifstream ifs;
-   ifs.open(inputFile->String::get_cstr(), std::ifstream::in);
-   if(!ifs.is_open())
+   if(!inf)
    {
-     mem->dump();
-     return printErrMsg(Loader::openerr, -1, NULL);
+   mem->dump();
+   return printErrMsg(Loader::openerr, -1, NULL);
    }
    return true;  //file name is good and file open succeeded
 }
@@ -110,68 +108,110 @@ bool Loader::openFile()
 */   
 bool Loader::load()
 {
-   if (!openFile()) return false;
+    if (!openFile()) return false;
 
-   std::string line;
-   int lineNumber = 1;  //needed if an error is found
-   while (getline(inf, line))
-   {
-      //create a String to contain the std::string
-      //Now, all accesses to the input line MUST be via your
-      //String class methods
+    std::string line;
+    int lineNumber = 1;  // needed if an error is found
+    while (getline(inf, line))
+    {
       String inputLine(line);
-      //TODO
-      
-      //Note: there are two kinds of records: data and comment
-      //      A data record begins with a "0x"
-      //
-      //If the line is a data record with errors
-      //then print the Loader::baddata error message and return false
-      //
+      if (!empty(&inputLine)) {
+         if(checkComment(&inputLine))
+         {
+         return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
+        }
+        if (checkData(&inputLine)) {
+            return printErrMsg(Loader::baddata, lineNumber, &inputLine);
+        }
+        }
+        memoryLoad(&inputLine);
+        lineNumber++;
+    }
 
-      //If the line is a comment record with errors
-      //then print the Loader::badcomment error message and return false
-      //
-
-      //Otherwise, load any data on the line into
-      //memory
-      //
-
-      //Don't do all of this work in this method!
-      //Break the work up into multiple single purpose methods
-
-      //increment the line number for next iteration
-      lineNumber++;
-   }
-   return true;  //load succeeded
-
+    return true;  // load succeeded
 }
+
 
 //Add helper methods definitions here and the declarations to Loader.h
 //In your code, be sure to use the static const variables defined in 
 //Loader.h to grab specific fields from the input line.
+/*
+MemoryLoad:
+Loads memory in.
+*/
+void Loader::memoryLoad(String * s)
+{
+   bool err = false;
+   int currentIndex = Loader::databegin;
+   uint32_t address = s->convert2Hex(Loader::addrbegin, Loader::addrend - Loader::addrbegin + 1, err);
+   uint8_t data;
+   while (s->isHex(currentIndex, 1, err)) {
+      data = s->convert2Hex(currentIndex, 2, err);
+      mem->putByte(data, address, err);
+      this->lastAddress = address;
+      currentIndex += 2;
+      address++;
+   }
+   
+}
 
-//checkComment
-//ifnot data and doesnt start w 0x empty space.
-//checkData
-//starts w 0x check for invalid stuff check for hex
-//checkload
-//load into memory once done w above.
+/*
 
-bool Loader::checkData(String inputLine){
-//if(inputLine.startwith("0x"))
-//{
-  //make sure hex up until :
-  //checks if space after : 
-  //need to check to make sure memory after : is 0-10 long also is hex (divide by 2 to check unless its 1 or 0)
-  //make sure the memory is greater then memory address before.
-  
+*/
+bool Loader::checkData(String * inputLine) {
+   bool error = false;
+   // Validate address format (0xhhh:)
+   if(!inputLine->isSubString("0x", Loader::addrbegin, error))
+   {
+      return false;
+   }
+   if (!inputLine->isHex(Loader::addrbegin, 3, error) || !inputLine->isChar(':', Loader::addrend, error)) {
+      return false;
+   }
+   // Validate data format (up to 10 bytes of hex data)
+   int32_t dataLength = inputLine->get_length() - Loader::databegin;
+   if (dataLength > Loader::maxbytes || !inputLine->isHex(Loader::databegin, dataLength, error)) {
+      return false;
+   }
+   // Validate address range (address + data length <= Memory::size)
+   uint32_t address = inputLine->convert2Hex(Loader::addrbegin, 3, error);
+   if (address + dataLength > Memory::size) {
+      return false;
+   }
+   // Validate if columns after data up to column 28 contain spaces
+   if (!inputLine->isRepeatingChar(' ', Loader::addrend + 1, Loader::comment - Loader::addrend - 1, error)) {
+      return false;
+   }
+   return true;
+}
 
-//}
-return false;
-} 
+/*
+Check Comment:
+using the constant comment =28 to do bellow
+A comment record is of the form:
+| comment here
+where columns 0 .. 27 contain space characters (' ')
+ and column 28 contains a pipe ('|') character. 
+ Any characters beyond column 28 are considered comment characters.
+ */
+bool Loader::checkComment(String * inputLine) {
+   bool error = false;
+   if(inputLine->isSubString("0x", Loader::addrbegin, error))
+   {
+      return false;
+   }
+   // Validate spaces in columns 0 .. 27
+   if (!inputLine->isRepeatingChar(' ', 0, Loader::comment, error)) {
+      return false;
+   }
+   // Validate column 28 contains a pipe ('|') character
+   if (!inputLine->isChar('|', Loader::comment, error)) {
+      return false;
+   }
+   return true;
+}
 
-bool Loader::checkComment(String inputLine){
-//checkif emptyline lol :3
-return false;
+bool Loader::empty(String * inputLine) {
+    // Check if the input line is completely empty
+    return inputLine->get_length() == 0;
 }
