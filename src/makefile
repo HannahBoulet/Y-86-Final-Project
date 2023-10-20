@@ -19,15 +19,17 @@ OBJS := $(OBJD)/Memory.o $(OBJD)/RegisterFile.o $(OBJD)/Tools.o $(OBJD)/Conditio
 #    that is dependent upon the .o files. With this target, you can type:
 #    make all
 #    and all of the .C files will be compiled
+yess: $(OBJS)
+	$(CC) $(OBJS) -o $(BIN)/yess
+
 help:
 	@echo "make all to compile for lab4."
 	@echo "Run make all to compile all the .C files"
-	@echp "Run make yess to run phony"
+	@echo "Run make yess to run phony"
+
 
 all:$(OBJS)
 
-yess: $(OBJS)
-	$(CC) $(OBJS) -o $(BIN)/yess
 # 3) need a .o target for each .C
 #    Remember each of these is dependent upon the .h files included by the .C
 
