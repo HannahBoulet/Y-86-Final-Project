@@ -141,23 +141,22 @@ bool Loader::load()
 /*
 MemoryLoad:
 Loads memory in.
-
 */
-void Loader::memoryLoad(String * s)
+void Loader::memoryLoad(String * inputLine)
 {
    bool err = false;
    int currentIndex = Loader::databegin;
-   uint32_t address = s->convert2Hex(Loader::addrbegin, Loader::addrend - Loader::addrbegin + 1, err);
+   uint32_t address = inputLine->convert2Hex(Loader::addrbegin, Loader::addrend - Loader::addrbegin + 1, err);
    uint8_t data;
-   while (s->isHex(currentIndex, 1, err)) {
-      data = s->convert2Hex(currentIndex, 2, err);
+   while (inputLine->isHex(currentIndex, 1, err)) {
+      data = inputLine->convert2Hex(currentIndex, 2, err);
       mem->putByte(data, address, err);
-      this->lastAddress = address;
       currentIndex += 2;
       address++;
    }
-   this-> lastAddress = address;
+   this->lastAddress = address;
 }
+
 /*
 Check if is data aka if 0x is in front if not it is comment
 */
@@ -172,67 +171,73 @@ bool Loader::checkData(String * inputLine)
 }
 
 /*
-using 
-static const int32_t addrbegin = 2;  //begin address index
-      static const int32_t addrend = 4;    //end address index
-      static const int32_t databegin = 7;  //begin data index
-      static const int32_t comment = 28;   //index of |
-      static const int32_t maxbytes = 10;  //max bytes in data record 
-      and String do so below
+Checks if data and address given are valid
 */
 bool Loader::checkValid(String * inputLine) {
-    bool error = false;
-
+   bool error = false;
    // 1st, check if there is a '|' character at the specified comment index
    if (!inputLine->isChar('|', Loader::comment, error)) {
            return false;
-    }
-   //  // 2nd, check if it has an address field then is valid hex 000: 
-    if (inputLine->isHex(Loader::addrbegin, 3, error) == false) {
-        return false;
-    }
-   //  //3rd, check if there is a colon at addrend+1 and a space after the colon at addrend + 2
-    if (inputLine->isChar(':', Loader::addrend + 1, error) == false) {
-        return false;
-    }
-     //  // Check if there is a space at index 27
-    if (!inputLine->isChar(' ', Loader::comment - 1, error)) {
-        return false; 
-    }
-    //check if length is even and 10 (maxbytes)
-    
-   //  // Check if the data is valid hex and within the specified range
-   //  if (!inputLine->isHex(Loader::databegin, Loader::comment - 2, error)) {
-   //      return false; 
-   //  }    
-  
-   //  // Check if there is a '|' at the comment index
-    
-  //first need to check if the addrbegin to the addrend are hex using ishex and possibly to hex
-   //return false if not
+   }
+   // 2nd, check xif it has an address field then is valid hex 000: 
+   if (inputLine->isHex(Loader::addrbegin, 3, error) == false) {
+      return false;
+   }
+   //3rd, check if there is a colon at addrend+1 and a space after the colon at addrend + 2
+   if(inputLine->isChar(':', Loader::addrend + 1, error) == false) {
+      return false;
+   }
+   //a space after the colon at addrend + 2
+   if(inputLine->isChar(' ', Loader::addrend + 2, error) == false)
+   {
+      return false;
+   }
+   // Check if there is a space at index 27
+   if(inputLine->isChar(' ', Loader::comment - 1, error) == false) {
+      return false; 
+   }
+   int count = 0;
+   int dataLength = 0;
+   for (int i = Loader::databegin; i < 27; i++) {
+      if (!inputLine->isChar(' ', i, error)) {
+         count++;
+      }
+   }
+   dataLength += count;
+   if(!inputLine->isHex(Loader::databegin, dataLength, error))
+   {
+      return false;
+   }
+   //testing if length is even
+   if(dataLength % 2 != 0 )
+   {
+      return false;
+   }
+   //testing if less that 10
+   if(dataLength / 2 > Loader::maxbytes)
+   {
+      return false;
+   }
 
-   //2nd need to check if there is a colon at addrend+1 and a space after the column addrend+2 
-   //return false if not
+   //check to see if last address is not greater then current address
+   int32_t currentAddress = inputLine->convert2Hex(Loader::addrbegin, 3, error);
+   if(currentAddress < lastAddress)
+   {
+      return false;
+   }
 
-   //3rd need to check if the data is also valid hex, is 10 bytes max (% 2) using maxbytes
-   //need to check if its greater then the previous address
-   //return false if not
-
-   //4th check if there is a | at comment and return false if not. 
-
-   //5th check for spaces between the data are return false if there is
-   //6th check for outside mem array
-   //7th make sure the data is even (% 2) and when divided by 2 its 10 or less (maxbytes)   
-    return true;
-
+   //check if data and address is in mememory array
+   if((currentAddress + dataLength / 2)> Memory::size)
+   {
+      return false;
+   }
+   return true;
 }
-
-
 
 
 /*
  Any characters beyond column 28 are considered comment characters.
- */
+*/
 bool Loader::checkComment(String * inputLine) {
    bool error = false;
    // Validate spaces in columns 0 .. 27
