@@ -38,7 +38,6 @@ class Loader
       bool checkComment(String * inputLine);
       bool checkData(String * inputLine);
       bool checkValid(String * inputLine);
-      bool empty(String * inputLine);
       void memoryLoad(String * s);
    public:
       //methods called outside of class

@@ -121,12 +121,13 @@ bool Loader::load()
                return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
             }
          }
-         if(checkData(&inputLine))
+         else if(checkData(&inputLine))
          {
-            if (!checkValid(&inputLine) == false) {
-               return printErrMsg(Loader::baddata, lineNumber, &inputLine);
+            if(checkValid(&inputLine)){
+            return printErrMsg(Loader::baddata,lineNumber,&inputLine);
             }
          }
+
         memoryLoad(&inputLine);
         lineNumber++;
     }
@@ -181,14 +182,23 @@ static const int32_t addrbegin = 2;  //begin address index
 */
 bool Loader::checkValid(String * inputLine) {
     bool error = false;
+    
     // First, check if the address fields are valid hex
-    if (!(inputLine->convert2Hex(Loader::addrbegin, Loader::addrend, error))) {
-        return false; 
+    if (!inputLine->convert2Hex(Loader::addrbegin, Loader::addrend, error)) {
+        return false;
     }
     // 2nd, check if there is a colon at addrend+1 and a space after the colon at addrend + 2
-    if (!inputLine->isChar(':', Loader::addrend+1, error) && !inputLine->isChar(' ', Loader::addrend + 2, error)) {
-        return false; 
+    if (!inputLine->isChar(':', Loader::addrend+1, error) && 
+        !inputLine->isChar(' ', Loader::addrend + 2, error)) {
+        return false;
     }
+
+    // 3rd, check if there is a '|' character at the specified comment index
+    if (!inputLine->isChar('|', Loader::comment, error)) {
+        return false;
+    }
+
+    
    //  // Check if the data is valid hex and within the specified range
    //  if (!inputLine->convert2Hex(Loader::databegin, Loader::comment - 2, error)) {
    //      return false; 
@@ -198,11 +208,22 @@ bool Loader::checkValid(String * inputLine) {
    //      return false; 
    //  }
    //  // Check if there is a '|' at the comment index
-   //  if (!inputLine->isChar('|', Loader::comment, error)) {
-   //      return false;
-   //  }
-    // The rest of the characters after the pipe '|' are considered valid
+    
+  //first need to check if the addrbegin to the addrend are hex using ishex and possibly to hex
+   //return false if not
 
+   //2nd need to check if there is a colon at addrend+1 and a space after the column addrend+2 
+   //return false if not
+
+   //3rd need to check if the data is also valid hex, is 10 bytes max (% 2) using maxbytes
+   //need to check if its greater then the previous address
+   //return false if not
+
+   //4th check if there is a | at comment and return false if not. 
+
+   //5th check for spaces between the data are return false if there is
+   //6th check for outside mem array
+   //7th make sure the data is even (% 2) and when divided by 2 its 10 or less (maxbytes)   
     return true;
 }
 
