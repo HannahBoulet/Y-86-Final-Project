@@ -114,22 +114,22 @@ bool Loader::load()
    while (getline(inf, line))
    {
       String inputLine(line);
-         if(checkData(&inputLine))
+      if(checkData(&inputLine))
+      {
+         if(!checkValid(&inputLine))
          {
-            if(!checkValid(&inputLine)){
             return printErrMsg(Loader::baddata,lineNumber,&inputLine);
-            }
          }
-         else
+      }
+      else
+      {            
+         if(!checkComment(&inputLine))
          {
-            if(!checkComment(&inputLine))
-            {
-               return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
-            }
+            return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
          }
-        
-        memoryLoad(&inputLine);
-        lineNumber++;
+      }
+      memoryLoad(&inputLine);
+      lineNumber++;
     }
     return true;  // load succeeded
 }
@@ -176,15 +176,18 @@ Checks if data and address given are valid
 bool Loader::checkValid(String * inputLine) {
    bool error = false;
    // 1st, check if there is a '|' character at the specified comment index
-   if (!inputLine->isChar('|', Loader::comment, error)) {
-           return false;
+   if (!inputLine->isChar('|', Loader::comment, error)) 
+   {
+      return false;
    }
    // 2nd, check xif it has an address field then is valid hex 000: 
-   if (inputLine->isHex(Loader::addrbegin, 3, error) == false) {
+   if (inputLine->isHex(Loader::addrbegin, 3, error) == false) 
+   {
       return false;
    }
    //3rd, check if there is a colon at addrend+1 and a space after the colon at addrend + 2
-   if(inputLine->isChar(':', Loader::addrend + 1, error) == false) {
+   if(inputLine->isChar(':', Loader::addrend + 1, error) == false) 
+   {
       return false;
    }
    //a space after the colon at addrend + 2
@@ -193,13 +196,16 @@ bool Loader::checkValid(String * inputLine) {
       return false;
    }
    // Check if there is a space at index 27
-   if(inputLine->isChar(' ', Loader::comment - 1, error) == false) {
+   if(inputLine->isChar(' ', Loader::comment - 1, error) == false) 
+   {
       return false; 
    }
    int count = 0;
    int dataLength = 0;
-   for (int i = Loader::databegin; i < 27; i++) {
-      if (!inputLine->isChar(' ', i, error)) {
+   for (int i = Loader::databegin; i < 27; i++) 
+   {
+      if (!inputLine->isChar(' ', i, error)) 
+      {
          count++;
       }
    }
@@ -227,7 +233,7 @@ bool Loader::checkValid(String * inputLine) {
    }
 
    //check if data and address is in mememory array
-   if((currentAddress + dataLength / 2)> Memory::size)
+   if((currentAddress + dataLength / 2) > Memory::size)
    {
       return false;
    }
@@ -241,11 +247,13 @@ bool Loader::checkValid(String * inputLine) {
 bool Loader::checkComment(String * inputLine) {
    bool error = false;
    // Validate spaces in columns 0 .. 27
-   if (!inputLine->isRepeatingChar(' ', 0, Loader::comment, error)) {
+   if (!inputLine->isRepeatingChar(' ', 0, Loader::comment, error)) 
+   {
       return false;
    }
    // Validate column 28 contains a pipe ('|') character
-   if (!inputLine->isChar('|', Loader::comment, error)) {
+   if (!inputLine->isChar('|', Loader::comment, error)) 
+   {
       return false;
    }
    return true;
