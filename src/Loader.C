@@ -114,20 +114,20 @@ bool Loader::load()
    while (getline(inf, line))
    {
       String inputLine(line);
-         if(!checkData(&inputLine))
+         if(checkData(&inputLine))
+         {
+            if(!checkValid(&inputLine)){
+            return printErrMsg(Loader::baddata,lineNumber,&inputLine);
+            }
+         }
+         else
          {
             if(!checkComment(&inputLine))
             {
                return printErrMsg(Loader::badcomment, lineNumber, &inputLine);
             }
          }
-         else if(checkData(&inputLine))
-         {
-            if(checkValid(&inputLine)){
-            return printErrMsg(Loader::baddata,lineNumber,&inputLine);
-            }
-         }
-
+        
         memoryLoad(&inputLine);
         lineNumber++;
     }
@@ -164,7 +164,7 @@ Check if is data aka if 0x is in front if not it is comment
 bool Loader::checkData(String * inputLine)
 {
    bool error = false;
-   if(!inputLine->isSubString("0x", Loader::addrbegin-2, error))
+   if(inputLine->isSubString("0x", 0, error) == false)
    {
       return false;
    }
@@ -182,31 +182,30 @@ static const int32_t addrbegin = 2;  //begin address index
 */
 bool Loader::checkValid(String * inputLine) {
     bool error = false;
-    
-    // First, check if the address fields are valid hex
-    if (!inputLine->convert2Hex(Loader::addrbegin, Loader::addrend, error)) {
-        return false;
-    }
-    // 2nd, check if there is a colon at addrend+1 and a space after the colon at addrend + 2
-    if (!inputLine->isChar(':', Loader::addrend+1, error) && 
-        !inputLine->isChar(' ', Loader::addrend + 2, error)) {
-        return false;
-    }
 
-    // 3rd, check if there is a '|' character at the specified comment index
-    if (!inputLine->isChar('|', Loader::comment, error)) {
+   // 1st, check if there is a '|' character at the specified comment index
+   if (!inputLine->isChar('|', Loader::comment, error)) {
+           return false;
+    }
+   //  // 2nd, check if it has an address field then is valid hex 000: 
+    if (inputLine->isHex(Loader::addrbegin, 3, error) == false) {
         return false;
     }
-
+   //  //3rd, check if there is a colon at addrend+1 and a space after the colon at addrend + 2
+    if (inputLine->isChar(':', Loader::addrend + 1, error) == false) {
+        return false;
+    }
+     //  // Check if there is a space at index 27
+    if (!inputLine->isChar(' ', Loader::comment - 1, error)) {
+        return false; 
+    }
+    //check if length is even and 10 (maxbytes)
     
    //  // Check if the data is valid hex and within the specified range
-   //  if (!inputLine->convert2Hex(Loader::databegin, Loader::comment - 2, error)) {
+   //  if (!inputLine->isHex(Loader::databegin, Loader::comment - 2, error)) {
    //      return false; 
    //  }    
-   //  // Check if there is a space at index 27
-   //  if (!inputLine->isChar(' ', Loader::comment - 1, error)) {
-   //      return false; 
-   //  }
+  
    //  // Check if there is a '|' at the comment index
     
   //first need to check if the addrbegin to the addrend are hex using ishex and possibly to hex
@@ -225,18 +224,13 @@ bool Loader::checkValid(String * inputLine) {
    //6th check for outside mem array
    //7th make sure the data is even (% 2) and when divided by 2 its 10 or less (maxbytes)   
     return true;
+
 }
 
 
 
 
 /*
-Check Comment:
-using the constant comment =28 to do bellow
-A comment record is of the form:
-| comment here
-where columns 0 .. 27 contain space characters (' ')
- and column 28 contains a pipe ('|') character. 
  Any characters beyond column 28 are considered comment characters.
  */
 bool Loader::checkComment(String * inputLine) {
