@@ -115,6 +115,7 @@ bool Loader::load()
    {
       String inputLine(line);
       if (!empty(&inputLine)) {
+
          if(!checkData(&inputLine))
          {
             if(checkComment(&inputLine))
@@ -157,7 +158,7 @@ void Loader::memoryLoad(String * s)
       currentIndex += 2;
       address++;
    }
-   
+   this-> lastAddress = address;
 }
 /*
 Check if is data aka if 0x is in front if not it is comment
@@ -176,27 +177,32 @@ bool Loader::checkData(String * inputLine)
 
 */
 bool Loader::checkValid(String * inputLine) {
-   bool error = false;
-   // Validate address format (hhh:)
-   if (!inputLine->isHex(Loader::addrbegin, 3, error) && !inputLine->isChar(':', Loader::addrend + 1, error)) {
-      return false;
-   }
-   // Validate data format (up to 10 bytes of hex data)
-   int32_t dataLength = inputLine->get_length() - Loader::databegin;
-   if (dataLength > Loader::maxbytes || !inputLine->isHex(Loader::databegin, dataLength, error)) {
-      return false;
-   }
-   // Validate address range (address + data length <= Memory::size)
-   uint32_t address = inputLine->convert2Hex(Loader::addrbegin, 3, error);
-   if (address + dataLength > Memory::size) {
-      return false;
-   }
-   // Validate if columns after data up to column 28 contain spaces
-   if (!inputLine->isRepeatingChar(' ', Loader::addrend + 1, Loader::comment - Loader::addrend - 1, error)) {
-      return false;
-   }
-   return true;
+   //first need to check if the addrbegin to the addrend are hex using ishex and possibly to hex
+   //return false if not
+   //2nd need to check if there is a semicolon at addrend+1 and a space after the column addrend+2 
+   //return false if not
+   //3rd need to check if the data is also valid hex, is 10 bytes max (% 2) using maxbytes
+   //need to check if its greater then the previous address
+   //return false if not
+   //4th check if there is a | at comment and return false if not. 
+    bool error = false;
+    int32_t length = inputLine->get_length();
+    if (!inputLine->isHex(Loader::addrbegin, Loader::addrend - Loader::addrbegin + 1, error)) {
+        return false;
+    }
+    if (inputLine->isChar(':', Loader::addrend + 1, error) && inputLine->isChar(' ', Loader::addrend + 2, error)) {
+        int32_t dataLength = length - Loader::addrend - 2;
+        if (dataLength > Loader::maxbytes || dataLength % 2 != 0) {
+            return false;
+        }
+        uint32_t currentAddress = inputLine->convert2Hex(Loader::addrbegin, Loader::addrend - Loader::addrbegin + 1, error);
+        if (currentAddress <= this->lastAddress) {
+            return false;
+        }
+    }
+        return true;
 }
+
 
 /*
 Check Comment:
