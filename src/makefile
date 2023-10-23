@@ -14,7 +14,11 @@ $(OBJD)/%.o: %.C
 # 1) need a macro for the .o files corresponding to the .C 
 #    files in this directory (note they will be stored in the ../obj
 #    directory: OBJS = ....
-OBJS := $(OBJD)/Memory.o $(OBJD)/RegisterFile.o $(OBJD)/Tools.o $(OBJD)/ConditionCodes.o $(OBJD)/Loader.o $(OBJD)/String.o $(OBJD)/yess.o
+OBJS := $(OBJD)/Memory.o $(OBJD)/RegisterFile.o $(OBJD)/Tools.o $(OBJD)/ConditionCodes.o $(OBJD)/Loader.o $(OBJD)/String.o $(OBJD)/yess.o $(OBJD)/CPU.o $(OBJD)/D.o $(OBJD)/E.o\
+	$(OBJD)/F.o $(OBJD)/M.o $(OBJD)/W.o $(OBJD)/FetchStage.o $(OBJD)/DecodeStage.o\
+	$(OBJD)/ExecuteStage.o $(OBJD)/MemoryStage.o $(OBJD)/WritebackStage.o $(OBJD)/PipeRegArray.o\
+	$(OBJD)/PipeReg.o $(OBJD)/PipeRegField.o $(OBJD)/StageArray.o $(OBJD)/Stage.o
+
  # 2) need a target (with a name that doesn't match a file; for example, all:)
 #    that is dependent upon the .o files. With this target, you can type:
 #    make all
@@ -26,7 +30,6 @@ help:
 	@echo "make all to compile for lab4."
 	@echo "Run make all to compile all the .C files"
 	@echo "Run make yess to run phony"
-
 
 all:$(OBJS)
 
@@ -47,6 +50,47 @@ $(OBJD)/yess.o: $(INC)/Memory.h $(INC)/Loader.h
 
 $(OBJD)/Loader.o: $(INC)/Memory.h $(INC)/String.h $(INC)/Loader.h
 
+$(OBJD)/CPU.o: $(INC)/CPU.h $(INC)/PipeRegArray.h $(INC)/StageArray.h $(INC)/Memory.h\
+ $(INC)/ConditionCodes.h $(INC)/RegisterFile.h
+
+$(OBJD)/D.o: $(INC)/D.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/PipeRegField.h\
+ $(INC)/Status.h
+
+$(OBJD)/E.o: $(INC)/E.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/PipeRegField.h\
+ $(INC)/Status.h
+
+$(OBJD)/F.o: $(INC)/F.h $(INC)/PipeRegField.h
+
+$(OBJD)/M.o: $(INC)/M.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/PipeRegField.h\
+ $(INC)/Status.h
+
+$(OBJD)/W.o: $(INC)/W.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/PipeRegField.h\
+ $(INC)/Status.h
+
+$(OBJD)/FetchStage.o: $(INC)/PipeRegArray.h $(INC)/PipeReg.h $(INC)/Memory.h \
+ $(INC)/FetchStage.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/Status.h \
+ $(INC)/F.h $(INC)/D.h
+
+$(OBJD)/DecodeStage.o: $(INC)/DecodeStage.h $(INC)/PipeRegArray.h
+
+$(OBJD)/ExecuteStage.o: $(INC)/ExecuteStage.h $(INC)/PipeRegArray.h
+
+$(OBJD)/MemoryStage.o: $(INC)/MemoryStage.h $(INC)/PipeRegArray.h
+
+$(OBJD)/WritebackStage.o: $(INC)/WritebackStage.h $(INC)/PipeRegArray.h
+
+$(OBJD)/PipeRegArray.o: $(INC)/PipeReg.h $(INC)/PipeRegArray.h $(INC)/F.h $(INC)/D.h \
+ $(INC)/E.h $(INC)/M.h $(INC)/W.h
+
+$(OBJD)/PipeReg.o: $(INC)/PipeReg.h
+
+$(OBJD)/PipeRegField.o: $(INC)/PipeRegField.h
+
+$(OBJD)/StageArray.o: $(INC)/StageArray.h $(INC)/Stage.h $(INC)/FetchStage.h \
+ $(INC)/DecodeStage.h $(INC)/ExecuteStage.h $(INC)/MemoryStage.h $(INC)/WritebackStage.h
+
+$(OBJD)/Stage.o: $(INC)/Memory.h $(INC)/RegisterFile.h $(INC)/ConditionCodes.h \
+ $(INC)/Stage.h
 
 # 4) need a clean target to delete the .o files corresponding to
 #    the .C files in this directory from the ../obj directory
