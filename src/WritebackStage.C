@@ -1,5 +1,15 @@
 #include "PipeRegArray.h"
 #include "WritebackStage.h"
+#include "Instruction.h"
+#include "Memory.h"
+#include "RegisterFile.h"
+#include "ConditionCodes.h"
+#include "PipeRegField.h"
+#include "PipeReg.h"
+#include "PipeRegArray.h"
+#include "Stage.h"
+#include "Status.h"
+#include "W.h"
 
 /*
  * doClockLow
@@ -12,7 +22,8 @@
  */
 bool WritebackStage::doClockLow(PipeRegArray * pipeRegs)
 {
-   return false;
+   PipeReg *wreg = pipeRegs->getWritebackReg();
+   return wreg->get(W_STAT) != Status::SAOK;;
 }
 
 /* doClockHigh
@@ -24,6 +35,10 @@ bool WritebackStage::doClockLow(PipeRegArray * pipeRegs)
 */
 void WritebackStage::doClockHigh(PipeRegArray * pipeRegs)
 {
+   PipeReg *wreg = pipeRegs->getWritebackReg();
+   //vale and valm
+   uint64_t valE = wreg->get(W_VALE);
+   uint64_t valM = wreg->get(W_VALM);
 
 }
 
