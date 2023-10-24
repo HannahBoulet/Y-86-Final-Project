@@ -1,5 +1,7 @@
 //TODO add more #includes as you need them
+#include <iostream>
 #include <cstdint>
+#include <stdio.h>
 #include "PipeRegArray.h"
 #include "PipeReg.h"
 #include "Memory.h"
@@ -7,9 +9,13 @@
 #include "Instruction.h"
 #include "RegisterFile.h"
 #include "Status.h"
+#include "W.h"
+#include "M.h"
 #include "F.h"
 #include "D.h"
-
+#include "E.h"
+#include "Stage.h"
+#include "Tools.h"
 /*
  * doClockLow
  *
@@ -23,6 +29,9 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
 {
    PipeReg * freg = pipeRegs->getFetchReg();
    PipeReg * dreg = pipeRegs->getDecodeReg();
+   PipeReg * mdreg = pipeRegs->getMemoryReg();
+   PipeReg * wreg = pipeRegs->getWritebackReg();
+
    bool mem_error = false;
    uint64_t icode = Instruction::INOP, ifun = Instruction::FNONE;
    uint64_t rA = RegisterFile::RNONE, rB = RegisterFile::RNONE;
@@ -33,7 +42,23 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    //TODO 
    //select PC value and read byte from memory
    //set icode and ifun using byte read from memory
+
+   uint64_t f_pc;
+   uint64_t inst = mem->getByte(f_pc, mem_error);
+   icode = Tools::getBits(inst, 4, 7);
+   ifun = Tools::getBits(inst, 0, 3);
+
+   if (mem_error)
+   {
+      icode = Instruction::INOP;
+      ifun = Instruction::FNONE;
+   }
+
    //uint64_t f_pc =  .... call your select pc function
+   f_pc = selectPC(freg, mdreg, wreg);
+ 
+
+
 
    //status of this instruction is SAOK (this will change later)
    stat = Status::SAOK;
@@ -42,16 +67,18 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    //In order to calculate the address of the next instruction,
    //you'll need to know whether this current instruction has an
    //immediate field and a register byte. (Look at the instruction encodings.)
-   //needvalC =  .... call your need valC function
-   //needregId = .... call your need regId function
+
+   needvalC =  need_valC(icode);
+
+   needregId = need_regids(icode); //.... call your need regId function
 
    //TODO
    //determine the address of the next sequential function
-   //valP = ..... call your PC increment function 
+   valP = PCincrement(f_pc, needregId, needvalC); //..... call your PC increment function 
 
    //TODO
    //calculate the predicted PC value
-   //predPC = .... call your function that predicts the next PC   
+   predPC = predictPC(icode, valC, valP); //.... call your function that predicts the next PC   
 
    //set the input for the PREDPC pipe register field in the F register
    freg->set(F_PREDPC, predPC);
@@ -114,19 +141,93 @@ word f_pc = [
     W_icode == IRET : W_valM;
     1: F_predPC;
 ];
+*/
+uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mdreg, PipeReg * wreg)
+{
+   if (mdreg->get(M_ICODE) == Instruction::IJXX && !mdreg->get(M_CND))
+   {
+      mdreg->get(M_VALA);
+   }
+   if (wreg-> get(W_ICODE) == Instruction::IRET) {
+      wreg->get(W_VALM);
+   }
+   return freg->get(F_PREDPC);
+}
 
-//needRegIds  method: input is f_icode
-bool need_regids = f_icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, IIRMOVQ, IRMMOVQ, IMRMOVQ };
 
-//needValC method: input is f_icode
-bool need_valC = f_icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL };
 
-//predictPC method: inputs are f_icode, f_valC, f_valP
-word f_predPC = [
+/* needRegIds  method: input is f_icode
+*bool need_regids = f_icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, IIRMOVQ, IRMMOVQ, IMRMOVQ };
+*/
+bool FetchStage::need_regids(uint64_t f_icode)
+{
+   if (f_icode == Instruction::IRRMOVQ || f_icode == Instruction::IOPQ || f_icode == Instruction::IPUSHQ
+      || f_icode ==  Instruction::IPOPQ || f_icode ==  Instruction::IIRMOVQ || f_icode ==  Instruction::IRMMOVQ
+      || f_icode == Instruction::IMRMOVQ)
+      {
+         return true;
+      }
+
+   return false;
+}
+
+/*needValC method: input is f_icode
+*bool need_valC = f_icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL };
+*/
+bool FetchStage::need_valC(uint64_t f_icode)
+{
+   if (f_icode == Instruction::IIRMOVQ || f_icode == Instruction::IRMMOVQ || f_icode == Instruction::IMRMOVQ
+      || f_icode == Instruction::IJXX || f_icode == Instruction::ICALL)
+   {
+      return true;
+   }
+
+   return false;
+}
+
+/* predictPC method: inputs are f_icode, f_valC, f_valP
+* word f_predPC = [
     f_icode in { IJXX, ICALL } : f_valC;
     1: f_valP;
 ];
-
 */
+uint64_t FetchStage::predictPC(uint64_t f_icode, uint64_t f_valC, uint64_t f_valP)
+{
+   if (f_icode == Instruction::IJXX || f_icode == Instruction::ICALL)
+   {
+      return f_valC;
+   }
 
+   return f_valP;
+}
+
+/*
+* PCincrement method
+*  takes as input the address of the current instruction (f_pc)
+*  the result of needRegIds, and the result of needValC
+*  and calculates the address of the next sequential instruction
+*  The value returned by PCincrement is stored in valP
+*  The value of valP is then used as input to predictPC along with
+*  the icode value and the value of valC (0 for now).
+*  The output of predictPC is the input to the F_predPC register
+*/
+uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
+{
+   if (needRegIds && needValC)
+   {
+      return f_pc + 10;
+   }
+   else if (!needRegIds && needValC)
+   {
+      return f_pc + 9;
+   }
+   else if (needRegIds && !needValC)
+   {
+      return f_pc + 2;
+   }
+   else
+   {
+      return f_pc + 1;
+   }
+}
 
