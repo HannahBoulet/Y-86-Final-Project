@@ -19,6 +19,8 @@
 bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
 {
    PipeReg * mdreg = pipeRegs->getMemoryReg();
+   PipeReg * wreg = pipeRegs->getWritebackReg();
+
    uint64_t stat = mdreg->get(M_STAT);
    uint64_t icode = mdreg->get(M_ICODE);
    uint64_t iCND = mdreg->get(M_CND);
@@ -26,7 +28,7 @@ bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t dstm = mdreg->get(M_DSTM);
    uint64_t valE = mdreg->get(M_VALE);
    uint64_t valA = mdreg->get(M_VALA);
-   setWInput(mdreg, stat, icode, valE, valA, dste, dstm);
+   setWInput(wreg, stat, icode, valE, valA, dste, dstm);
    return false;
 }
 

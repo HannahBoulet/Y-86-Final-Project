@@ -29,7 +29,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
 {
    PipeReg * freg = pipeRegs->getFetchReg();
    PipeReg * dreg = pipeRegs->getDecodeReg();
-   PipeReg * mdreg = pipeRegs->getMemoryReg();
+   PipeReg * mreg = pipeRegs->getMemoryReg();
    PipeReg * wreg = pipeRegs->getWritebackReg();
 
    bool mem_error = false;
@@ -43,7 +43,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    //select PC value and read byte from memory
    //set icode and ifun using byte read from memory
 
-   uint64_t f_pc;
+   uint64_t f_pc = selectPC(freg, mreg, wreg);
    uint64_t inst = mem->getByte(f_pc, mem_error);
    icode = Tools::getBits(inst, 4, 7);
    ifun = Tools::getBits(inst, 0, 3);
@@ -55,20 +55,19 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    }
 
    //uint64_t f_pc =  .... call your select pc function
-   f_pc = selectPC(freg, mdreg, wreg);
+   f_pc = selectPC(freg, mreg, wreg);
  
-
-
 
    //status of this instruction is SAOK (this will change later)
    stat = Status::SAOK;
+   
 
    //TODO
    //In order to calculate the address of the next instruction,
    //you'll need to know whether this current instruction has an
    //immediate field and a register byte. (Look at the instruction encodings.)
 
-   needvalC =  need_valC(icode);
+   needvalC = need_valC(icode);
 
    needregId = need_regids(icode); //.... call your need regId function
 
@@ -146,10 +145,11 @@ uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mdreg, PipeReg * wreg)
 {
    if (mdreg->get(M_ICODE) == Instruction::IJXX && !mdreg->get(M_CND))
    {
-      mdreg->get(M_VALA);
+      return mdreg->get(M_VALA);
    }
-   if (wreg-> get(W_ICODE) == Instruction::IRET) {
-      wreg->get(W_VALM);
+   if (wreg->get(W_ICODE) == Instruction::IRET) 
+   {
+      return wreg->get(W_VALM);
    }
    return freg->get(F_PREDPC);
 }
@@ -167,7 +167,6 @@ bool FetchStage::need_regids(uint64_t f_icode)
       {
          return true;
       }
-
    return false;
 }
 

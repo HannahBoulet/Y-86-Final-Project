@@ -26,7 +26,9 @@ method stores those values in the E pipeline register.
  */
 bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
 {
-   PipeReg *dreg = pipeRegs->getDecodeReg();
+   PipeReg * dreg = pipeRegs->getDecodeReg();
+   PipeReg * ereg = pipeRegs->getExecuteReg();
+
    uint64_t stat = dreg->get(D_STAT);
    uint64_t icode = dreg->get(D_ICODE);
    uint64_t ifun = dreg->get(D_IFUN);
@@ -36,7 +38,7 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t valP = dreg->get(D_VALP);
 
     // Call setEinput with the obtained values
-   setEInput(dreg, stat, icode, ifun, rA, rB, valC, valP);
+   setEInput(ereg, stat, icode, ifun, rA, rB, valC, valP);
    return false;
 }
 
@@ -49,8 +51,8 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
 */
 void DecodeStage::doClockHigh(PipeRegArray * pipeRegs)
 {
-   PipeReg * dreg = pipeRegs->getDecodeReg();  
-   dreg->normal();
+   PipeReg * ereg = pipeRegs->getExecuteReg();  
+   ereg->normal();
 }
 
 

@@ -22,8 +22,8 @@
  */
 bool WritebackStage::doClockLow(PipeRegArray * pipeRegs)
 {
-   PipeReg *wreg = pipeRegs->getWritebackReg();
-   return wreg->get(W_STAT) != Status::SAOK;;
+   PipeReg * wreg = pipeRegs->getWritebackReg();
+   return wreg->get(W_STAT) != Status::SAOK;
 }
 
 /* doClockHigh
