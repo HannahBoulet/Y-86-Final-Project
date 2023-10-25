@@ -41,8 +41,8 @@ bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
 */
 void MemoryStage::doClockHigh(PipeRegArray * pipeRegs)
 {
-   PipeReg * mreg = pipeRegs->getMemoryReg();  
-   mreg->normal();   
+   PipeReg * wreg = pipeRegs->getWritebackReg();  
+   wreg->normal();   
 }
 //Extra helpers
 

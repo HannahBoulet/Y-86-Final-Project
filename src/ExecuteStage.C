@@ -48,6 +48,7 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * mreg  = pipeRegs->getMemoryReg();
+
    mreg->normal();
 }
 

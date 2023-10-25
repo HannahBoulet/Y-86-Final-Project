@@ -59,8 +59,15 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
  
 
    //status of this instruction is SAOK (this will change later)
+   if(icode == Instruction::IHALT)
+   {
+      stat = Status::SHLT;
+   }
+   else{
    stat = Status::SAOK;
+   }
    
+
 
    //TODO
    //In order to calculate the address of the next instruction,
