@@ -34,7 +34,6 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 
    setMInput(mreg, stat, icode, ifun, valC, valA, dste, dstm);
 
-
    return false;
 }
 
@@ -48,7 +47,6 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * mreg  = pipeRegs->getMemoryReg();
-
    mreg->normal();
 }
 

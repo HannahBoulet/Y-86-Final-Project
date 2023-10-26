@@ -80,6 +80,6 @@ void DecodeStage::setEInput(PipeReg * Ereg, uint64_t stat, uint64_t icode, uint6
    Ereg->set(E_SRCB, rB);
 
    Ereg->set(E_VALC, valC);
-   Ereg->set(E_VALA, valP);
-   //Ereg->set(E_VALB, );
+   Ereg->set(E_VALA, 0);
+
 }

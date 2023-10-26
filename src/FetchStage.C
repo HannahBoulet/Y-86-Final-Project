@@ -55,7 +55,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    }
 
    //uint64_t f_pc =  .... call your select pc function
-   f_pc = selectPC(freg, mreg, wreg);
+   //f_pc = selectPC(freg, mreg, wreg);
  
 
    //status of this instruction is SAOK (this will change later)
@@ -63,8 +63,9 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    {
       stat = Status::SHLT;
    }
-   else{
-   stat = Status::SAOK;
+   else
+   {
+      stat = Status::SAOK;
    }
    
 
