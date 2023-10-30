@@ -275,7 +275,7 @@ uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
    
          for (int i = 0; i < 8; i++, addr++)
          {
-            valArray[i] =s mem->getByte(addr, error);
+            valArray[i] = mem->getByte(addr, error);
          }
       return Tools::buildLong(valArray); // use buildLong
    
