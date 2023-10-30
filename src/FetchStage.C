@@ -236,5 +236,47 @@ uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
    {
       return f_pc + 1;
    }
+
 }
 
+/*
+* getRegIds - if need_regId is true, this 
+* method is used to read the register byte and initialize rA
+* and rB to the rB to the appropriate bits in the register byte. 
+* these are then used as input to the D register.
+*/
+uint64_t FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t *rA, uint64_t *rB)
+{
+   bool error = false;
+
+   if (needRegIds == true)
+   {
+      uint64_t regByte = mem->getByte(f_pc + 1, error);
+      *rA = Tools::getBits(regByte, 4, 7);
+      *rB = Tools::getBits(regByte, 0, 3);
+   }
+}
+
+/*
+* buildValC -  if need_valC is true, this method
+* reads 8 bytes from memory and builds
+* and returns the valC that is then used as
+* input to the D register
+*/
+uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
+{
+   uint8_t valArray[8]; // 8 bits build
+
+   if (!needvalC) return 0;
+   int32_t addr = f_pc + 1;
+   if (needRegIds) addr++;
+   
+      bool error = false;
+   
+         for (int i = 0; i < 8; i++, addr++)
+         {
+            valArray[i] =s mem->getByte(addr, error);
+         }
+      return Tools::buildLong(valArray); // use buildLong
+   
+}
