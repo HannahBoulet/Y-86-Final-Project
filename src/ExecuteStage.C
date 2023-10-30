@@ -32,6 +32,7 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t srcA = ereg->get(E_SRCA);
    uint64_t srcB = ereg->get(E_SRCB);
 
+   ereg->set(e_valE, E_VALC);
    setMInput(mreg, stat, icode, ifun, valC, valA, dste, dstm);
 
    return false;
@@ -58,7 +59,7 @@ void ExecuteStage::setMInput(PipeReg * mreg, uint64_t stat, uint64_t icode, uint
     mreg->set(M_STAT, stat);
     mreg->set(M_ICODE, icode);
     mreg->set(M_CND, cnd);
-    mreg->set(M_VALE, valE);
+    mreg->set(M_VALE, e_valE);
     mreg->set(M_VALA, valA);
     mreg->set(M_DSTE, dstE);
     mreg->set(M_DSTM, dstM);
