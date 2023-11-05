@@ -245,7 +245,7 @@ uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
 * and rB to the rB to the appropriate bits in the register byte. 
 * these are then used as input to the D register.
 */
-uint64_t FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t *rA, uint64_t *rB)
+void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t *rA, uint64_t *rB)
 {
    bool error = false;
 

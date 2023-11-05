@@ -23,7 +23,7 @@ bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
 
    uint64_t stat = mdreg->get(M_STAT);
    uint64_t icode = mdreg->get(M_ICODE);
-   uint64_t iCND = mdreg->get(M_CND);
+   //uint64_t iCND = mdreg->get(M_CND);
    uint64_t dste = mdreg->get(M_DSTE);
    uint64_t dstm = mdreg->get(M_DSTM);
    uint64_t valE = mdreg->get(M_VALE);
