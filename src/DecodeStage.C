@@ -10,13 +10,6 @@
 #include "E.h"
 
 /*
-will use the values of the pipeline register fields in 
-the D pipeline register and determine the values to 
-be stored in the E pipeline register. The doClockHigh 
-method stores those values in the E pipeline register.
-*/
-
-/*
  * doClockLow
  *
  * Performs the Fetch stage combinational logic that is performed when
