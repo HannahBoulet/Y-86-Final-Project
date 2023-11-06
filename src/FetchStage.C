@@ -87,6 +87,10 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    //calculate the predicted PC value
    predPC = predictPC(icode, valC, valP); //.... call your function that predicts the next PC   
 
+
+   buildValC(f_pc, need_valC(icode),icode, valC);
+   getRegIds(f_pc, need_regids(icode), rA, rB);
+
    //set the input for the PREDPC pipe register field in the F register
    freg->set(F_PREDPC, predPC);
 
@@ -245,15 +249,15 @@ uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
 * and rB to the rB to the appropriate bits in the register byte. 
 * these are then used as input to the D register.
 */
-void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t *rA, uint64_t *rB)
+void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t & rA, uint64_t &rB)
 {
    bool error = false;
 
    if (needRegIds == true)
    {
       uint64_t regByte = mem->getByte(f_pc + 1, error);
-      *rA = Tools::getBits(regByte, 4, 7);
-      *rB = Tools::getBits(regByte, 0, 3);
+      rA = Tools::getBits(regByte, 4, 7);
+      rB = Tools::getBits(regByte, 0, 3);
    }
 }
 
@@ -263,20 +267,21 @@ void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t *rA, uint64_
 * and returns the valC that is then used as
 * input to the D register
 */
-uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
+uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, uint64_t f_icode,  bool needvalC)
 {
-   uint8_t valArray[8]; // 8 bits build
+    // 8 bits build
 
    if (!needvalC) return 0;
    int32_t addr = f_pc + 1;
-   if (needRegIds) addr++;
-   
-      bool error = false;
-   
-         for (int i = 0; i < 8; i++, addr++)
-         {
-            valArray[i] = mem->getByte(addr, error);
-         }
-      return Tools::buildLong(valArray); // use buildLong
+   uint8_t valArray[8];
+   bool error;
+   f_pc += (f_icode == Instruction::ICALL|| f_icode == Instruction::IJXX) ? 1:2;
+
+   for (int i = 0; i < 8; i++)
+   {
+      valArray[i] = mem->getByte(f_pc+1, error);
+   }
+      needRegIds =  Tools::buildLong(valArray);
+      return needRegIds; // use buildLong
    
 }
