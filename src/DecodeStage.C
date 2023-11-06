@@ -36,7 +36,7 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t dstE = d_dstEFun(dreg);
    uint64_t dstM = d_dstMFun(dreg);
 
-   uint64_t valA= selFwdBFun(d_srcA);
+   uint64_t valA = selFwdAFun(d_srcA);
    uint64_t valB = selFwdBFun(d_srcB);
 
    setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
