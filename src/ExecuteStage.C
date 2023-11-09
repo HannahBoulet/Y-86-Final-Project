@@ -2,6 +2,7 @@
 #include "ExecuteStage.h"
 #include "RegisterFile.h"
 #include "ConditionCodes.h"
+#include "Tools.h"
 #include "PipeRegField.h"
 #include "PipeReg.h"
 #include "Stage.h"
@@ -25,16 +26,25 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t stat = ereg->get(E_STAT);
    uint64_t icode = ereg->get(E_ICODE);
    uint64_t cnd = 0;
-   uint64_t valA = 0;
-   //uint64_t valB = ereg->get(E_VALB);
+   uint64_t valA = ereg->get(E_VALA);
    uint64_t dste = ereg->get(E_DSTE);
    uint64_t dstm = ereg->get(E_DSTM);
-   //uint64_t srcA = ereg->get(E_SRCA);
-   //uint64_t srcB = ereg->get(E_SRCB);
 
-   
-   uint64_t valE = ereg ->get(E_VALC);
-   setMInput(mreg, stat, icode, cnd, valE, valA, dste, dstm);
+   uint64_t V_aluA = aluA(ereg);
+   uint64_t V_aluB = aluB(ereg);
+   uint64_t fun = aluFun(ereg);
+   uint64_t valE = ereg->get(E_VALC);
+   uint64_t alu = getALU(V_aluA,V_aluB,fun);
+
+   //call alu and cc
+   if(set_cc(ereg))
+   {
+      CC(alu, V_aluA, V_aluB, fun);
+   }
+
+   Stage::e_valE = alu;
+   Stage::e_dstE = dste;
+   setMInput(mreg, stat, icode, cnd, alu, valA, dste, dstm);
 
    return false;
 }
@@ -55,7 +65,6 @@ void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
 void ExecuteStage::setMInput(PipeReg * mreg, uint64_t stat, uint64_t icode, uint64_t cnd, 
                      uint64_t valE, uint64_t valA,
                      uint64_t dstE, uint64_t dstM)
-
 {
     mreg->set(M_STAT, stat);
     mreg->set(M_ICODE, icode);
@@ -84,7 +93,7 @@ uint64_t ExecuteStage::aluA(PipeReg * ereg)
    if (ereg->get(E_ICODE) == Instruction::IIRMOVQ || ereg->get(E_ICODE) == Instruction::IRMMOVQ 
       || ereg->get(E_ICODE) == Instruction::IMRMOVQ)
    {
-      return ereg -> get(E_VALC);
+      return ereg->get(E_VALC);
    }
    if (ereg->get(E_ICODE) == Instruction::ICALL || ereg->get(E_ICODE) == Instruction::IPUSHQ)
    {
@@ -94,6 +103,7 @@ uint64_t ExecuteStage::aluA(PipeReg * ereg)
    {
       return 8;
    }
+   return 0;
 }
 
 /* 
@@ -156,9 +166,74 @@ E_icode == IRRMOVQ && !e_Cnd : RNONE;
 
 uint64_t ExecuteStage::set_dstE(PipeReg * ereg)
 {
-   if ((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !e_Cnd)
+   if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !ereg->get(e_Cnd))
    {
       return RegisterFile::RNONE;
    } 
    return ereg->get(E_DSTE);
 }
+
+uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
+{
+   if(alufun == Instruction::ADDQ)
+   {
+      return aluA + aluB;
+   }
+   if(alufun == Instruction::SUBQ)
+   {
+      return aluB - aluA;
+   }
+   if(alufun == Instruction::XORQ)
+   {
+      return aluA ^ aluB;
+   }
+   if(alufun == Instruction::ANDQ)
+   {
+      return aluA & aluB;
+   }
+   return 0;
+}
+
+void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun)
+{
+   bool error;
+   if(Tools::sign(valE) == 1)
+   {
+      Stage::cc->setConditionCode(1, Stage::cc->SF,error);
+   }
+   else
+   {
+      Stage::cc->setConditionCode(0, Stage::cc->SF,error);
+   }
+   if(aluFun == Instruction::ADDQ)
+   {
+      if(Tools::addOverflow(aluA,aluB))
+      {
+         Stage::cc->setConditionCode(1, Stage::cc->OF, error);
+      }
+      else
+      {
+         Stage::cc->setConditionCode(0, Stage::cc->OF, error); 
+      }
+   }
+   else if(aluFun == Instruction::SUBQ)
+   {
+      if(Tools::subOverflow(aluA,aluB))
+      {
+         Stage::cc->setConditionCode(1, Stage::cc->OF, error);
+      }
+      else
+      {
+         Stage::cc->setConditionCode(0, Stage::cc->OF, error); 
+      }
+   }
+   if(!valE)
+   {
+      Stage::cc->setConditionCode(1, Stage::cc->ZF, error); 
+   }
+   else
+   {
+      Stage::cc->setConditionCode(0, Stage::cc->ZF, error); 
+   }
+}
+

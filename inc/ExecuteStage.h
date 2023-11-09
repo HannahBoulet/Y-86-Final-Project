@@ -15,6 +15,8 @@ class ExecuteStage: public Stage
       uint64_t aluFun(PipeReg * ereg);
       bool set_cc(PipeReg * ereg);
       uint64_t set_dstE(PipeReg * ereg);
+      void CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun);
+      uint64_t getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun);
 
 
 
