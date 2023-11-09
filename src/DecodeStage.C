@@ -6,6 +6,8 @@
 #include "PipeReg.h"
 #include "Stage.h"
 #include "RegisterFile.h"
+#include "M.h"
+#include "W.h"
 #include "D.h"
 #include "E.h"
 
@@ -22,6 +24,8 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
 {
    PipeReg * dreg = pipeRegs->getDecodeReg();
    PipeReg * ereg = pipeRegs->getExecuteReg();
+   PipeReg * mreg = pipeRegs->getMemoryReg();
+   PipeReg * wreg = pipeRegs->getWritebackReg();
 
    uint64_t stat = dreg->get(D_STAT);
    uint64_t icode = dreg->get(D_ICODE);
@@ -32,14 +36,22 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
 
    d_srcA = d_srcAFun(dreg);
    d_srcB = d_srcBFun(dreg);
+   uint64_t rA = dreg->get(D_RA);
+   uint64_t rB = dreg->get(D_RB);
 
+   uint64_t drcA = d_srcAFun(dreg);
+   uint64_t drcB = d_srcBFun(dreg);
+   
    uint64_t dstE = d_dstEFun(dreg);
    uint64_t dstM = d_dstMFun(dreg);
 
-   uint64_t valA = selFwdAFun(d_srcA);
-   uint64_t valB = selFwdBFun(d_srcB);
+   //unsure if supposed to be ra or drcA
+   
 
-   setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
+   uint64_t valA = selFwdAFun(dreg, mreg, wreg, rA);
+   uint64_t valB = selFwdBFun(dreg, mreg, wreg, rB);
+
+   setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, drcA, drcB);
    return false;
 }
 
@@ -131,15 +143,39 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
    return RegisterFile::RNONE;
 }
 
-uint64_t DecodeStage::selFwdAFun(uint64_t rA)
+uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
 {
-   bool error = false;
-   return rf->readRegister(rA, error);
+bool error = false;
+   if(srcA == e_dstE)
+   {
+      return e_valE;
+   }
+   if(srcA == mreg->get(M_DSTE))
+   {
+      return wreg->get(M_VALE);
+   }
+   if(srcA == wreg->get(W_DSTE))
+   {
+      return wreg->get(W_VALE);
+   }
+   return rf->readRegister(srcA, error);
 }
 
-uint64_t DecodeStage::selFwdBFun(uint64_t rB)
+uint64_t DecodeStage::selFwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
-   return rf->readRegister(rB, error);
+   if(srcB == e_dstE)
+   {
+      return e_valE;
+   }
+   if(srcB == mreg->get(M_DSTE))
+   {
+      return mreg->get(M_VALE);
+   }
+   if(srcB == wreg->get(W_DSTE))
+   {
+      return wreg->get(W_VALE);
+   }
+   return rf->readRegister(srcB, error);
 }
 

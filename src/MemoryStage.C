@@ -54,7 +54,7 @@ void MemoryStage::setWInput(PipeReg * wreg, uint64_t stat, uint64_t icode,
    wreg->set(W_ICODE, icode);
 
    wreg->set(W_VALE, valE);
-   wreg->set(W_VALM, valM);
+   wreg->set(W_VALM, 0);
 
    wreg->set(W_DSTE, dstE);
    wreg->set(W_DSTM, dstM);
