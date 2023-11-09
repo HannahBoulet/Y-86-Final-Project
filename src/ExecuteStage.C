@@ -5,6 +5,7 @@
 #include "PipeRegField.h"
 #include "PipeReg.h"
 #include "Stage.h"
+#include "Instruction.h"
 #include "E.h"
 #include "M.h"
 /*
@@ -63,4 +64,101 @@ void ExecuteStage::setMInput(PipeReg * mreg, uint64_t stat, uint64_t icode, uint
     mreg->set(M_VALA, valA);
     mreg->set(M_DSTE, dstE);
     mreg->set(M_DSTM, dstM);
+}
+
+/*HCL for ALU A component
+word aluA = [
+E_icode in { IRRMOVQ, IOPQ } : E_valA;
+E_icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ } : E_valC;
+E_icode in { ICALL, IPUSHQ } : -8;
+E_icode in { IRET, IPOPQ } : 8;
+1: 0;
+];
+*/ 
+uint64_t ExecuteStage::aluA(PipeReg * ereg)
+{
+   if (ereg->get(E_ICODE) == Instruction::IRRMOVQ || ereg->get(E_ICODE) == Instruction::IOPQ)
+   {
+      return ereg->get(E_VALA);
+   }
+   if (ereg->get(E_ICODE) == Instruction::IIRMOVQ || ereg->get(E_ICODE) == Instruction::IRMMOVQ 
+      || ereg->get(E_ICODE) == Instruction::IMRMOVQ)
+   {
+      return ereg -> get(E_VALC);
+   }
+   if (ereg->get(E_ICODE) == Instruction::ICALL || ereg->get(E_ICODE) == Instruction::IPUSHQ)
+   {
+      return -8;
+   }
+   if (ereg->get(E_ICODE) == Instruction::IRET || ereg->get(E_ICODE) == Instruction::IPOPQ)
+   {
+      return 8;
+   }
+}
+
+/* 
+//HCL for ALU B component
+word aluB = [
+E_icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL, IPUSHQ, IRET, IPOPQ } : E_valB;
+E_icode in { IRRMOVQ, IIRMOVQ } : 0;
+1: 0;
+];*/
+uint64_t ExecuteStage::aluB(PipeReg * ereg)
+{
+   if (ereg->get(E_ICODE) == Instruction::IRMMOVQ || ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IOPQ
+      || ereg->get(E_ICODE) == Instruction::ICALL || ereg->get(E_ICODE) == Instruction::IPUSHQ || ereg->get(E_ICODE) == Instruction::IRET
+      || ereg->get(E_ICODE) == Instruction::IPOPQ)
+      {
+         return ereg->get(E_VALB);
+      }
+   if (ereg->get(E_ICODE) == Instruction::IRRMOVQ || ereg->get(E_ICODE) == Instruction::IIRMOVQ)
+   {
+      return 0;
+   }
+
+   return 0;
+}
+
+/*
+//HCL for ALU fun. component
+word alufun = [
+E_icode == IOPQ : E_ifun;
+1: ADDQ;
+];*/
+uint64_t ExecuteStage::aluFun(PipeReg * ereg)
+{
+   if (ereg->get(E_ICODE) == Instruction::IOPQ)
+   {
+      return ereg->get(E_IFUN);
+   }
+
+   return Instruction::ADDQ;
+}
+
+/*
+//HCL for set_cc component
+bool set_cc = (E_icode == IOPQ);*/
+
+bool ExecuteStage::set_cc(PipeReg * ereg)
+{
+   if (ereg->get(E_ICODE) == Instruction::IOPQ)
+   {
+      return true;
+   }
+   return false;
+}
+
+/*//HCL for dstE component
+word e_dstE = [
+E_icode == IRRMOVQ && !e_Cnd : RNONE;
+1 : E_dstE;
+];*/
+
+uint64_t ExecuteStage::set_dstE(PipeReg * ereg)
+{
+   if ((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !e_Cnd)
+   {
+      return RegisterFile::RNONE;
+   } 
+   return ereg->get(E_DSTE);
 }
