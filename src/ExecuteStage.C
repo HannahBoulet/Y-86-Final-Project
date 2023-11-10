@@ -33,8 +33,8 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t V_aluA = aluA(ereg);
    uint64_t V_aluB = aluB(ereg);
    uint64_t fun = aluFun(ereg);
-   uint64_t valE = ereg->get(E_VALC);
-   uint64_t alu = getALU(V_aluA,V_aluB,fun);
+  // uint64_t valE = ereg->get(E_VALC);
+   uint64_t alu = getALU(V_aluA, V_aluB, fun);
 
    //call alu and cc
    if(set_cc(ereg))
@@ -166,7 +166,7 @@ E_icode == IRRMOVQ && !e_Cnd : RNONE;
 
 uint64_t ExecuteStage::set_dstE(PipeReg * ereg)
 {
-   if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !ereg->get(e_Cnd))
+   if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !e_Cnd)
    {
       return RegisterFile::RNONE;
    } 
@@ -183,15 +183,16 @@ uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
    {
       return aluB - aluA;
    }
-   if(alufun == Instruction::XORQ)
-   {
-      return aluA ^ aluB;
-   }
+   
    if(alufun == Instruction::ANDQ)
    {
       return aluA & aluB;
    }
-   return 0;
+   else
+   {
+      return aluA ^ aluB;
+   }
+
 }
 
 void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun)
@@ -199,41 +200,42 @@ void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluF
    bool error;
    if(Tools::sign(valE) == 1)
    {
-      Stage::cc->setConditionCode(1, Stage::cc->SF,error);
+      cc->setConditionCode(1, Stage::cc->SF,error);
    }
    else
    {
-      Stage::cc->setConditionCode(0, Stage::cc->SF,error);
+      cc->setConditionCode(0, Stage::cc->SF,error);
    }
    if(aluFun == Instruction::ADDQ)
    {
       if(Tools::addOverflow(aluA,aluB))
       {
-         Stage::cc->setConditionCode(1, Stage::cc->OF, error);
+         cc->setConditionCode(1, ConditionCodes::OF, error);
       }
       else
       {
-         Stage::cc->setConditionCode(0, Stage::cc->OF, error); 
+         cc->setConditionCode(0, ConditionCodes::OF, error); 
       }
    }
    else if(aluFun == Instruction::SUBQ)
    {
       if(Tools::subOverflow(aluA,aluB))
       {
-         Stage::cc->setConditionCode(1, Stage::cc->OF, error);
+         cc->setConditionCode(1, ConditionCodes::OF, error);
       }
       else
       {
-         Stage::cc->setConditionCode(0, Stage::cc->OF, error); 
+         cc->setConditionCode(0, ConditionCodes::OF, error); 
       }
    }
+
    if(!valE)
    {
-      Stage::cc->setConditionCode(1, Stage::cc->ZF, error); 
+      cc->setConditionCode(1, ConditionCodes::ZF, error); 
    }
    else
    {
-      Stage::cc->setConditionCode(0, Stage::cc->ZF, error); 
+      cc->setConditionCode(0, ConditionCodes::ZF, error); 
    }
 }
 

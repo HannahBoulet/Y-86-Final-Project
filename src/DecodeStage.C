@@ -39,19 +39,17 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t rA = dreg->get(D_RA);
    uint64_t rB = dreg->get(D_RB);
 
-   uint64_t drcA = d_srcAFun(dreg);
-   uint64_t drcB = d_srcBFun(dreg);
+
    
    uint64_t dstE = d_dstEFun(dreg);
    uint64_t dstM = d_dstMFun(dreg);
 
    //unsure if supposed to be ra or drcA
    
+   uint64_t valA = selFwdAFun(dreg, mreg, wreg, d_srcA);
+   uint64_t valB = selFwdBFun(dreg, mreg, wreg, d_srcB);
 
-   uint64_t valA = selFwdAFun(dreg, mreg, wreg, rA);
-   uint64_t valB = selFwdBFun(dreg, mreg, wreg, rB);
-
-   setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, drcA, drcB);
+   setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
    return false;
 }
 
@@ -145,16 +143,16 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
 
 uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
 {
-bool error = false;
-   if(srcA == e_dstE)
+   bool error = false;
+   if(srcA == Stage::e_dstE)
    {
-      return e_valE;
+      return Stage::e_valE;
    }
-   if(srcA == mreg->get(M_DSTE))
+   else if(srcA == mreg->get(M_DSTE))
    {
       return wreg->get(M_VALE);
    }
-   if(srcA == wreg->get(W_DSTE))
+   else if(srcA == wreg->get(W_DSTE))
    {
       return wreg->get(W_VALE);
    }
@@ -164,15 +162,15 @@ bool error = false;
 uint64_t DecodeStage::selFwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
-   if(srcB == e_dstE)
+   if(srcB == Stage::e_dstE)
    {
-      return e_valE;
+      return Stage::e_valE;
    }
-   if(srcB == mreg->get(M_DSTE))
+   else if(srcB == mreg->get(M_DSTE))
    {
       return mreg->get(M_VALE);
    }
-   if(srcB == wreg->get(W_DSTE))
+   else if(srcB == wreg->get(W_DSTE))
    {
       return wreg->get(W_VALE);
    }
