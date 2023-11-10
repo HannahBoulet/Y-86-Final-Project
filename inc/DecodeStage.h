@@ -13,7 +13,7 @@ class DecodeStage: public Stage
    uint64_t d_dstMFun(PipeReg * dreg);
    uint64_t selFwdAFun(uint64_t ra);
    uint64_t selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA);
-   uint64_t selFwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB);
+   uint64_t FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB);
 
    void setEInput(PipeReg * Ereg, uint64_t stat, 
          uint64_t icode, uint64_t ifun, uint64_t valA,

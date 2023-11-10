@@ -32,22 +32,18 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t ifun = dreg->get(D_IFUN);
 
    uint64_t valC = dreg->get(D_VALC);
-   //uint64_t valP = dreg->get(D_VALP);
 
-   d_srcA = d_srcAFun(dreg);
-   d_srcB = d_srcBFun(dreg);
-   uint64_t rA = dreg->get(D_RA);
-   uint64_t rB = dreg->get(D_RB);
+   uint64_t d_srcA = d_srcAFun(dreg);
+   uint64_t d_srcB = d_srcBFun(dreg);
 
-
+   //uint64_t rA = dreg->get(D_RA);
+   //uint64_t rB = dreg->get(D_RB);
    
    uint64_t dstE = d_dstEFun(dreg);
    uint64_t dstM = d_dstMFun(dreg);
-
-   //unsure if supposed to be ra or drcA
    
    uint64_t valA = selFwdAFun(dreg, mreg, wreg, d_srcA);
-   uint64_t valB = selFwdBFun(dreg, mreg, wreg, d_srcB);
+   uint64_t valB = FwdBFun(dreg, mreg, wreg, d_srcB);
 
    setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
    return false;
@@ -66,12 +62,11 @@ void DecodeStage::doClockHigh(PipeRegArray * pipeRegs)
    ereg->normal();
 }
 
-//Extra Helpers!
 
 void DecodeStage::setEInput(PipeReg * Ereg, uint64_t stat, 
-uint64_t icode, uint64_t ifun, uint64_t valA,
-uint64_t valC, uint64_t valB,uint64_t dstE,
-uint64_t dstM,uint64_t srcA, uint64_t srcB)
+   uint64_t icode, uint64_t ifun, uint64_t valA,
+   uint64_t valC, uint64_t valB,uint64_t dstE,
+   uint64_t dstM,uint64_t srcA, uint64_t srcB)
 {
    Ereg->set(E_STAT, stat);
    Ereg->set(E_ICODE, icode);
@@ -86,8 +81,6 @@ uint64_t dstM,uint64_t srcA, uint64_t srcB)
    Ereg->set(E_VALC, valC);
    Ereg->set(E_VALA, valA);
    Ereg->set(E_VALB, valB);
-
-
 }
 
 
@@ -150,7 +143,7 @@ uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg,
    }
    else if(srcA == mreg->get(M_DSTE))
    {
-      return wreg->get(M_VALE);
+      return mreg->get(M_VALE);
    }
    else if(srcA == wreg->get(W_DSTE))
    {
@@ -159,7 +152,7 @@ uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg,
    return rf->readRegister(srcA, error);
 }
 
-uint64_t DecodeStage::selFwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
+uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
    if(srcB == Stage::e_dstE)

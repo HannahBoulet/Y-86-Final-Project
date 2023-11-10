@@ -183,7 +183,7 @@ uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
    {
       return aluB - aluA;
    }
-   
+
    if(alufun == Instruction::ANDQ)
    {
       return aluA & aluB;
