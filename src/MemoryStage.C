@@ -44,7 +44,6 @@ void MemoryStage::doClockHigh(PipeRegArray * pipeRegs)
    PipeReg * wreg = pipeRegs->getWritebackReg();  
    wreg->normal();   
 }
-//Extra helpers
 
 void MemoryStage::setWInput(PipeReg * wreg, uint64_t stat, uint64_t icode,
                             uint64_t valE, uint64_t valM, uint64_t dstE, 

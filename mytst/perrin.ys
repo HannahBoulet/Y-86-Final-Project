@@ -1,0 +1,50 @@
+.pos 0x0
+    nop
+    irmovq 3, %rax
+    irmovq 0, %rcx
+    irmovq 2, %rdx
+
+    addq %rdx, %rcx
+    addq %rcx, %rdx
+    addq %rcx, %rbx
+
+    addq %rdx, %rsp
+    addq %rbx, %rbp
+    addq %rsp, %rsi
+    addq %rbp, %rdi
+
+    addq %rsi, %r8
+    addq %rdi, %r9
+    addq %r8, %r10
+    addq %r9, %r11
+    addq %r10, %r12 
+    addq %r11, %r13
+    addq %r12, %r14 
+
+    irmovq 0, %rsp
+    irmovq 5, %rbp
+    irmovq 0x8000000000000000, %rsi
+    irmovq 0x8000000000000000, %rdi
+    irmovq 0x7fffffffffffffff, %r8
+    irmovq 0x7fffffffffffffff, %r9
+    irmovq 0x8000000000000000, %r10
+    irmovq 0x8000000000000001, %r11
+
+    irmovq 0, %rbx
+    irmovq 0, %rsp
+    irmovq 0, %rbp
+    irmovq 0, %rsi
+    irmovq 0, %rdi
+    irmovq 0, %r8
+    irmovq 0, %r9
+    irmovq 0, %r10
+    irmovq 0, %r11
+    irmovq 0, %r12
+    irmovq 0, %r13
+    irmovq 0, %r14
+
+    irmovq 0x8000000000000000, %rax
+    irmovq 0x8000000000000000, %rcx
+    irmovq 0x7fffffffffffffff, %rdx
+
+    halt

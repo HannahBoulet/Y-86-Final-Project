@@ -33,10 +33,8 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t V_aluA = aluA(ereg);
    uint64_t V_aluB = aluB(ereg);
    uint64_t fun = aluFun(ereg);
-  // uint64_t valE = ereg->get(E_VALC);
    uint64_t alu = getALU(V_aluA, V_aluB, fun);
 
-   //call alu and cc
    if(set_cc(ereg))
    {
       CC(alu, V_aluA, V_aluB, fun);
@@ -62,6 +60,19 @@ void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
    mreg->normal();
 }
 
+/* setMInput 
+ * provides the input to potentially be stored in the E register
+ * during doClockHigh.
+ * 
+ *   @param: mreg - Pointer to the memory pipeline register.
+ *   @param: stat - Status code for the instruction.
+ *   @param: icode - Instruction code.
+ *   @param:  cnd - Condition code.
+ *   @param: valE - Value computed by the ALU using operands from the execute stage.
+ *   @param: valA - Value read from memory or register file.
+ *   @param: dstE - Destination register for the result of the ALU operation.
+ *   @param: dstM - Destination register for memory operations.
+ */
 void ExecuteStage::setMInput(PipeReg * mreg, uint64_t stat, uint64_t icode, uint64_t cnd, 
                      uint64_t valE, uint64_t valA,
                      uint64_t dstE, uint64_t dstM)
@@ -75,15 +86,9 @@ void ExecuteStage::setMInput(PipeReg * mreg, uint64_t stat, uint64_t icode, uint
     mreg->set(M_DSTM, dstM);
 }
 
-/*HCL for ALU A component
-word aluA = [
-E_icode in { IRRMOVQ, IOPQ } : E_valA;
-E_icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ } : E_valC;
-E_icode in { ICALL, IPUSHQ } : -8;
-E_icode in { IRET, IPOPQ } : 8;
-1: 0;
-];
-*/ 
+/*
+ * aluA - Computes the value of operand A for the ALU.
+*/
 uint64_t ExecuteStage::aluA(PipeReg * ereg)
 {
    if (ereg->get(E_ICODE) == Instruction::IRRMOVQ || ereg->get(E_ICODE) == Instruction::IOPQ)
@@ -106,13 +111,9 @@ uint64_t ExecuteStage::aluA(PipeReg * ereg)
    return 0;
 }
 
-/* 
-//HCL for ALU B component
-word aluB = [
-E_icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL, IPUSHQ, IRET, IPOPQ } : E_valB;
-E_icode in { IRRMOVQ, IIRMOVQ } : 0;
-1: 0;
-];*/
+/*
+ * aluB - Computes the value of operand B for the ALU.
+*/
 uint64_t ExecuteStage::aluB(PipeReg * ereg)
 {
    if (ereg->get(E_ICODE) == Instruction::IRMMOVQ || ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IOPQ
@@ -128,13 +129,9 @@ uint64_t ExecuteStage::aluB(PipeReg * ereg)
 
    return 0;
 }
-
 /*
-//HCL for ALU fun. component
-word alufun = [
-E_icode == IOPQ : E_ifun;
-1: ADDQ;
-];*/
+ * aluFun - Determines the ALU operation code.
+*/
 uint64_t ExecuteStage::aluFun(PipeReg * ereg)
 {
    if (ereg->get(E_ICODE) == Instruction::IOPQ)
@@ -146,9 +143,8 @@ uint64_t ExecuteStage::aluFun(PipeReg * ereg)
 }
 
 /*
-//HCL for set_cc component
-bool set_cc = (E_icode == IOPQ);*/
-
+ * set_cc - Checks if condition codes need to be set.
+*/
 bool ExecuteStage::set_cc(PipeReg * ereg)
 {
    if (ereg->get(E_ICODE) == Instruction::IOPQ)
@@ -157,13 +153,9 @@ bool ExecuteStage::set_cc(PipeReg * ereg)
    }
    return false;
 }
-
-/*//HCL for dstE component
-word e_dstE = [
-E_icode == IRRMOVQ && !e_Cnd : RNONE;
-1 : E_dstE;
-];*/
-
+/*
+ * set_dstE - Sets the destination register for the result of the ALU operation.
+*/
 uint64_t ExecuteStage::set_dstE(PipeReg * ereg)
 {
    if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !e_Cnd)
@@ -172,7 +164,9 @@ uint64_t ExecuteStage::set_dstE(PipeReg * ereg)
    } 
    return ereg->get(E_DSTE);
 }
-
+/*
+ * getALU - Performs the ALU operation based on the ALU function code.
+*/
 uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
 {
    if(alufun == Instruction::ADDQ)
@@ -194,48 +188,23 @@ uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
    }
 
 }
-
+/*
+ * CC - Sets the condition codes based on the result of the ALU operation.
+*/
 void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun)
 {
    bool error;
-   if(Tools::sign(valE) == 1)
-   {
-      cc->setConditionCode(1, Stage::cc->SF,error);
-   }
-   else
-   {
-      cc->setConditionCode(0, Stage::cc->SF,error);
-   }
+   cc->setConditionCode(Tools::sign(valE), Stage::cc->SF,error);
+   cc->setConditionCode(!valE, ConditionCodes::ZF, error); 
+
    if(aluFun == Instruction::ADDQ)
    {
-      if(Tools::addOverflow(aluA,aluB))
-      {
-         cc->setConditionCode(1, ConditionCodes::OF, error);
-      }
-      else
-      {
-         cc->setConditionCode(0, ConditionCodes::OF, error); 
-      }
+      cc->setConditionCode(Tools::addOverflow(aluA,aluB), ConditionCodes::OF, error);
    }
    else if(aluFun == Instruction::SUBQ)
    {
-      if(Tools::subOverflow(aluA,aluB))
-      {
-         cc->setConditionCode(1, ConditionCodes::OF, error);
-      }
-      else
-      {
-         cc->setConditionCode(0, ConditionCodes::OF, error); 
-      }
+      cc->setConditionCode(Tools::subOverflow(aluA,aluB), ConditionCodes::OF, error);
    }
-
-   if(!valE)
-   {
-      cc->setConditionCode(1, ConditionCodes::ZF, error); 
-   }
-   else
-   {
-      cc->setConditionCode(0, ConditionCodes::ZF, error); 
-   }
+   
 }
 

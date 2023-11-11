@@ -30,14 +30,9 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t stat = dreg->get(D_STAT);
    uint64_t icode = dreg->get(D_ICODE);
    uint64_t ifun = dreg->get(D_IFUN);
-
    uint64_t valC = dreg->get(D_VALC);
-
    uint64_t d_srcA = d_srcAFun(dreg);
    uint64_t d_srcB = d_srcBFun(dreg);
-
-   //uint64_t rA = dreg->get(D_RA);
-   //uint64_t rB = dreg->get(D_RB);
    
    uint64_t dstE = d_dstEFun(dreg);
    uint64_t dstM = d_dstMFun(dreg);
@@ -62,7 +57,23 @@ void DecodeStage::doClockHigh(PipeRegArray * pipeRegs)
    ereg->normal();
 }
 
-
+/* setEInput
+ *
+ * provides the input to potentially be stored in the E register
+ * during doClockHigh.
+ *
+ * @param Ereg - Pointer to the Execute stage pipeline register instance.
+ * @param stat - Status code to be set in the E register.
+ * @param icode - Instruction code to be set in the E register.
+ * @param ifun - Instruction function to be set in the E register.
+ * @param valA - Value of operand A to be set in the E register.
+ * @param valC - Constant value to be set in the E register.
+ * @param valB - Value of operand B to be set in the E register.
+ * @param dstE - Destination register for the Execute stage to be set in the E register.
+ * @param dstM - Destination register for the Memory stage to be set in the E register.
+ * @param srcA - Source register A to be set in the E register.
+ * @param srcB - Source register B to be set in the E register.
+ */
 void DecodeStage::setEInput(PipeReg * Ereg, uint64_t stat, 
    uint64_t icode, uint64_t ifun, uint64_t valA,
    uint64_t valC, uint64_t valB,uint64_t dstE,
@@ -83,7 +94,11 @@ void DecodeStage::setEInput(PipeReg * Ereg, uint64_t stat,
    Ereg->set(E_VALB, valB);
 }
 
-
+/*
+ * d_srcAfun - Determines the source register
+ * A for the Execute Stage based on the instruction 
+ * type in the Decode Stage
+*/
 uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
 {
    if(dreg->get(D_ICODE)==Instruction::IRRMOVQ || dreg->get(D_ICODE)==Instruction::IRMMOVQ || dreg->get(D_ICODE)==Instruction::IOPQ || dreg->get(D_ICODE)==Instruction::IPUSHQ)
@@ -96,7 +111,11 @@ uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
    }
    return RegisterFile::RNONE;
 }
-
+/*
+ * d_srcBFun - Determines the source register B 
+ * for the Execute Stage based on the instruction
+ * type in the Decode Stage.
+ */
 uint64_t DecodeStage::d_srcBFun(PipeReg * dreg)
 {
    if(dreg->get(D_ICODE)==Instruction::IOPQ||dreg->get(D_ICODE)==Instruction::IRMMOVQ||dreg->get(D_ICODE)==Instruction::IMRMOVQ)
@@ -110,7 +129,11 @@ uint64_t DecodeStage::d_srcBFun(PipeReg * dreg)
    return RegisterFile::RNONE;
 
 }
-
+/*
+ * d_dstEFun - Determines the destination register 
+ * E for the Execute Stage based on the 
+ * instruction type in the Decode Stage.
+*/
 uint64_t DecodeStage::d_dstEFun(PipeReg * dreg)
 {
    if(dreg->get(D_ICODE)==Instruction::IRRMOVQ||dreg->get(D_ICODE)==Instruction::IIRMOVQ||dreg->get(D_ICODE)==Instruction::IOPQ)
@@ -124,7 +147,11 @@ uint64_t DecodeStage::d_dstEFun(PipeReg * dreg)
    return RegisterFile::RNONE;
 }
 
-
+/*
+ * d_dstMFun - Determines the destination 
+ * register M for the Memory Stage based on the 
+ * instruction type in the Decode Stage.
+*/
 uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
 {
    if(dreg->get(D_ICODE)==Instruction::IMRMOVQ||dreg->get(D_ICODE)==Instruction::IPOPQ)
@@ -134,6 +161,11 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
    return RegisterFile::RNONE;
 }
 
+/*
+ * selFwdAFun - Selects the source value 
+ * for operand A in the Execute Stage, 
+ * considering forwarding from previous stages.
+*/
 uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
 {
    bool error = false;
@@ -151,7 +183,11 @@ uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg,
    }
    return rf->readRegister(srcA, error);
 }
-
+/*
+ * FwdBFun - Selects the source value for 
+ * operand B in the Execute Stage, considering 
+ * forwarding from previous stages.
+*/
 uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;

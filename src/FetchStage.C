@@ -54,11 +54,6 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
       ifun = Instruction::FNONE;
    }
 
-   //uint64_t f_pc =  .... call your select pc function
-   //f_pc = selectPC(freg, mreg, wreg);
- 
-
-   //status of this instruction is SAOK (this will change later)
    if(icode == Instruction::IHALT)
    {
       stat = Status::SHLT;
@@ -67,33 +62,20 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    {
       stat = Status::SAOK;
    }
-   
-
-
-   //TODO
-   //In order to calculate the address of the next instruction,
-   //you'll need to know whether this current instruction has an
-   //immediate field and a register byte. (Look at the instruction encodings.)
 
    needvalC = need_valC(icode);
 
-   needregId = need_regids(icode); //.... call your need regId function
+   needregId = need_regids(icode);
 
-   //TODO
-   //determine the address of the next sequential function
-   valP = PCincrement(f_pc, needregId, needvalC); //..... call your PC increment function 
+   valP = PCincrement(f_pc, needregId, needvalC); 
 
-   //TODO
-   //calculate the predicted PC value
-   predPC = predictPC(icode, valC, valP); //.... call your function that predicts the next PC   
+   predPC = predictPC(icode, valC, valP);
 
    valC = buildValC(f_pc, needregId, needvalC);
    getRegIds(f_pc, needregId, rA, rB);
 
-   //set the input for the PREDPC pipe register field in the F register
    freg->set(F_PREDPC, predPC);
 
-   //set the inputs for the D register
    setDInput(dreg, stat, icode, ifun, rA, rB, valC, valP);
    return false;
 }
@@ -268,9 +250,7 @@ void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t & rA, uint64
 */
 uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
 {
-   
    uint8_t valArray[8];
-
    if (!needvalC) return 0;
    int32_t addr = f_pc + 1;
    if (needRegIds) addr++;
