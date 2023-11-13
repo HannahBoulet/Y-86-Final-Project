@@ -4,13 +4,16 @@ parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 gparent_path="$(dirname "$parent_path")"
 results="$gparent_path/tst/"
 yess="$parent_path/yess"
-dir="/u/css/classes/3481/234/lab8tests"
+dir="/u/css/classes/3481/234/lab9tests"
 
 tests=( error1 error2 error3 error4 error5 error6
         error7 error8 error9 error10 error11 error12 
         error13 error14 nop irmovq1 irmovq2
         addq andq subq xorq addqfor1 addqfor2 addqfor3
-        addqfor4 addqfor5 addqfor6
+        addqfor4 addqfor5 addqfor6 cmove cmovge cmovg
+        cmovle cmovl cmovne memfor1 memfor2 mrmovq1 mrmovq2
+        popq1 popq2 pushq1 pushq2 pushqpopq rmmovq
+        rrmovq
       )
 
 numTests=0
