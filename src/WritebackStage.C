@@ -45,7 +45,6 @@ void WritebackStage::doClockHigh(PipeRegArray * pipeRegs)
    rf->writeRegister(valE, w_dste, error);
    rf->writeRegister(valM, w_dstM, error);
 
+   
+
 }
-
-
-
