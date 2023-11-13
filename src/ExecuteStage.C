@@ -23,27 +23,36 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    PipeReg * ereg = pipeRegs->getExecuteReg();
    PipeReg * mreg = pipeRegs->getMemoryReg();
 
+  
    uint64_t stat = ereg->get(E_STAT);
    uint64_t icode = ereg->get(E_ICODE);
-   uint64_t cnd = 0;
+   uint64_t ifun = ereg->get(E_IFUN);
+
+   uint64_t cnd = CondFun(icode, ifun);
    uint64_t valA = ereg->get(E_VALA);
-   uint64_t dste = ereg->get(E_DSTE);
+   //uint64_t valB = ereg->get(E_VALB);
+
    uint64_t dstm = ereg->get(E_DSTM);
 
    uint64_t V_aluA = aluA(ereg);
    uint64_t V_aluB = aluB(ereg);
    uint64_t fun = aluFun(ereg);
-   uint64_t alu = getALU(V_aluA, V_aluB, fun);
+
+
+   uint64_t dste = set_dstE(ereg, cnd);
+
+   uint64_t valE = getALU(V_aluA, V_aluB, fun);
 
    if(set_cc(ereg))
    {
-      CC(alu, V_aluA, V_aluB, fun);
+      CC(valE, V_aluA, V_aluB, fun);
    }
 
-   Stage::e_valE = alu;
+   Stage::e_valE = valE;
    Stage::e_dstE = dste;
-   setMInput(mreg, stat, icode, cnd, alu, valA, dste, dstm);
-
+   
+   setMInput(mreg, stat, icode, cnd, valE, valA, dste, dstm);
+ 
    return false;
 }
 
@@ -156,9 +165,9 @@ bool ExecuteStage::set_cc(PipeReg * ereg)
 /*
  * set_dstE - Sets the destination register for the result of the ALU operation.
 */
-uint64_t ExecuteStage::set_dstE(PipeReg * ereg)
+uint64_t ExecuteStage::set_dstE(PipeReg * ereg, uint64_t cnd)
 {
-   if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !e_Cnd)
+   if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !cnd)
    {
       return RegisterFile::RNONE;
    } 
@@ -194,8 +203,8 @@ uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
 void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun)
 {
    bool error;
-   cc->setConditionCode(Tools::sign(valE), Stage::cc->SF,error);
-   cc->setConditionCode(!valE, ConditionCodes::ZF, error); 
+
+   cc->setConditionCode(Tools::sign(valE), ConditionCodes::SF, error);
 
    if(aluFun == Instruction::ADDQ)
    {
@@ -205,6 +214,47 @@ void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluF
    {
       cc->setConditionCode(Tools::subOverflow(aluA,aluB), ConditionCodes::OF, error);
    }
+   cc->setConditionCode(!valE, ConditionCodes::ZF, error); 
+}
+
+bool ExecuteStage::CondFun(uint64_t icode, uint64_t ifun)
+{
+   bool error = false;
+   bool sf = cc->getConditionCode(ConditionCodes::SF, error);
+   bool of = cc->getConditionCode(ConditionCodes::OF, error);
+   bool zf = cc->getConditionCode(ConditionCodes::ZF, error);
    
+   if (icode ==  Instruction::IJXX || icode == Instruction::ICMOVXX) 
+   {
+      if (ifun == Instruction::UNCOND) 
+      {
+         return 1;
+      }
+      if (ifun == Instruction::LESSEQ) 
+      {
+         return (sf ^ of) | zf;
+      }
+      if (ifun == Instruction::LESS) 
+      {
+         return (sf ^ of);
+      }
+      if (ifun == Instruction::EQUAL) 
+      {
+         return zf;
+      }
+      if (ifun == Instruction::NOTEQUAL) 
+      {
+         return !zf;
+      }
+      if (ifun == Instruction::GREATER) 
+      {
+         return !(sf ^ of) & !zf;
+      }
+      if (ifun == Instruction::GREATEREQ) 
+      {
+         return !(sf ^ of);
+      }
+   }
+   return 0;
 }
 

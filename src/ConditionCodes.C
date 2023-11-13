@@ -57,8 +57,7 @@ bool ConditionCodes::getConditionCode(int32_t ccNum, bool & error)
       error = false;
    }
    
-   codes = Tools::getBits(codes, ccNum, ccNum);
-   return codes;
+   return Tools::getBits(codes, ccNum, ccNum);
 }
 
 /*

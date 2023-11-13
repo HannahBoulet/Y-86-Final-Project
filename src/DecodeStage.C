@@ -169,6 +169,8 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
 uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
 {
    bool error = false;
+   if (srcA == RegisterFile::RNONE) return 0;
+
    if(srcA == Stage::e_dstE)
    {
       return Stage::e_valE;
@@ -191,6 +193,8 @@ uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg,
 uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
+   if (srcB == RegisterFile::RNONE) return 0;
+   
    if(srcB == Stage::e_dstE)
    {
       return Stage::e_valE;
