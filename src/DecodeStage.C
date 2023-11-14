@@ -161,23 +161,41 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
    return RegisterFile::RNONE;
 }
 
-/*
- * selFwdAFun - Selects the source value 
- * for operand A in the Execute Stage, 
- * considering forwarding from previous stages.
+ //HCL for Sel+FwdA
+/*word d_valA = [
+D_icode in { ICALL, IJXX } : D_valP;
+d_srcA == RNONE : 0;          
+d_srcA == e_dstE : e_valE;    # value computed by ExecuteStage
+d_srcA == M_dstM : m_valM;    # value obtained from Memory by MemoryStage
+d_srcA == M_dstE : M_valE;    # value in M register
+d_srcA == W_dstM : W_valM;    # value in W register
+d_srcA == W_dstE : W_valE;    # value in W register
+1 : d_rvalA;                  # value from register file
+];
 */
 uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
 {
    bool error = false;
+   if (dreg->get(D_ICODE) == Instruction::ICALL || dreg->get(D_ICODE) == Instruction::IJXX)
+   {
+      return dreg->get(D_VALP);
+   }
    if (srcA == RegisterFile::RNONE) return 0;
-
    if(srcA == Stage::e_dstE)
    {
       return Stage::e_valE;
    }
+   else if (srcA == mreg->get(M_DSTM))
+   {
+      return m_valM;
+   }
    else if(srcA == mreg->get(M_DSTE))
    {
       return mreg->get(M_VALE);
+   }
+   else if (srcA == wreg->get(W_DSTM))
+   {
+      return wreg->get(W_VALM);
    }
    else if(srcA == wreg->get(W_DSTE))
    {
@@ -189,19 +207,36 @@ uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg,
  * FwdBFun - Selects the source value for 
  * operand B in the Execute Stage, considering 
  * forwarding from previous stages.
+ //HCL for FwdB
+word d_valB = [
+d_srcB == RNONE : 0;
+d_srcB == e_dstE : e_valE;    # value computed by ExecuteStage
+d_srcB == M_dstM : m_valM;    # value obtained from Memory by MemoryStage
+d_srcB == M_dstE : M_valE;    # value in M register
+d_srcB == W_dstM : W_valM;    # value in W register
+d_srcB == W_dstE : W_valE;    # value in W register
+1 : d_rvalB;                  # value from register file
+];
 */
 uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
    if (srcB == RegisterFile::RNONE) return 0;
-   
    if(srcB == Stage::e_dstE)
    {
       return Stage::e_valE;
    }
+   else if (srcB == mreg->get(M_DSTM))
+   {
+      return m_valM;
+   }
    else if(srcB == mreg->get(M_DSTE))
    {
       return mreg->get(M_VALE);
+   }
+   else if (srcB == wreg->get(W_DSTM))
+   {
+      return wreg->get(W_VALM);
    }
    else if(srcB == wreg->get(W_DSTE))
    {

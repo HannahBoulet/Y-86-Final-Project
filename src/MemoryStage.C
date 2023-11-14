@@ -35,19 +35,19 @@ bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t address = mem_addr(mdreg);
 
    // if the mem_read method returns true, use Memory class to read a long
-   uint64_t valM = 0;
+   m_valM = 0;
    bool error = false;
    if (mem_read(mdreg))
    {
-      valM = mem->getLong(address, error);
+      m_valM = mem->getLong(address, error);
    }
 
    //  If the mem_write returns true use your Memory class to write M_valA to memory
    if (mem_write(mdreg))
    {
-      mem->putLong(mdreg->get(M_VALA), address, error);
+      mem->putLong(valA, address, error);
    }
-   setWInput(wreg, stat, icode, valE, valM, dste, dstm);
+   setWInput(wreg, stat, icode, valE, m_valM, dste, dstm);
    return false;
    
 }
