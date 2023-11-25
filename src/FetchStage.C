@@ -116,6 +116,16 @@ void FetchStage::setDInput(PipeReg * dreg, uint64_t stat, uint64_t icode,
    dreg->set(D_VALP, valP);
 }
 
+/**
+* selectPC
+* 
+* determines the PC value to be used by the fetch stage. 
+*
+* @param: freg a pointer to the pipeline register for the fetch stage.
+* @param: mdreg a pointer to the pipeline register for the memory stage
+* @paam: wreg a pointer to the pipeline register for the writeback stage.
+* @return: the selected program counter value.
+*/
 uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mdreg, PipeReg * wreg)
 {
    if (mdreg->get(M_ICODE) == Instruction::IJXX && !mdreg->get(M_CND))
@@ -131,8 +141,13 @@ uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mdreg, PipeReg * wreg)
 
 
 
-/* needRegIds  method: input is f_icode
-*bool need_regids = f_icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, IIRMOVQ, IRMMOVQ, IMRMOVQ };
+/**
+* need_regids
+*
+* Checks if the icode indicates an operation that requires register identifiers.
+* 
+* @param: f_icode the instruction code from the fetch stage.
+* @return: true if requires reg id, false otherwise.
 */
 bool FetchStage::need_regids(uint64_t f_icode)
 {
@@ -145,8 +160,13 @@ bool FetchStage::need_regids(uint64_t f_icode)
    return false;
 }
 
-/*needValC method: input is f_icode
-*bool need_valC = f_icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL };
+/**
+* need_valC
+*
+* Determines whether the given icode requires valC.
+*
+* @param: f_icode the instruction code from the fetch stage.
+* @return: true if instruction code requires the valC, false otherwise.
 */
 bool FetchStage::need_valC(uint64_t f_icode)
 {
@@ -159,11 +179,15 @@ bool FetchStage::need_valC(uint64_t f_icode)
    return false;
 }
 
-/* predictPC method: inputs are f_icode, f_valC, f_valP
-* word f_predPC = [
-    f_icode in { IJXX, ICALL } : f_valC;
-    1: f_valP;
-];
+/**
+* predictPC
+*
+* Predicts the next PC value based on the icode and its associated values.
+*
+* @param: f_icode the instruction code from the fetch stage.
+* @param: f_valC the constant value associated with the instruction.
+* @param: f_valP the current PC value
+* @return: the predicted PC value.
 */
 uint64_t FetchStage::predictPC(uint64_t f_icode, uint64_t f_valC, uint64_t f_valP)
 {
@@ -174,15 +198,14 @@ uint64_t FetchStage::predictPC(uint64_t f_icode, uint64_t f_valC, uint64_t f_val
    return f_valP;
 }
 
-/*
-* PCincrement method
-*  takes as input the address of the current instruction (f_pc)
-*  the result of needRegIds, and the result of needValC
-*  and calculates the address of the next sequential instruction
-*  The value returned by PCincrement is stored in valP
-*  The value of valP is then used as input to predictPC along with
-*  the icode value and the value of valC (0 for now).
-*  The output of predictPC is the input to the F_predPC register
+/**
+* PCincrement
+* Calculates the address of the next sequential instruction.
+*
+* @param: f_pc the current PC value.
+* @param: needRegIds indicates whether regids are needed.
+* @param: needValC indicates whether a valC is needed.
+* @return: incremented PC value to be input to the F_predPC register.
 */
 uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
 {
@@ -205,11 +228,14 @@ uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
 
 }
 
-/*
-* getRegIds - if need_regId is true, this 
-* method is used to read the register byte and initialize rA
-* and rB to the rB to the appropriate bits in the register byte. 
-* these are then used as input to the D register.
+/**
+* getRegIds 
+* Reads the register byte and initializes rA and rB to the rB to the 
+* appropriate bits in the register byte, then used as input to the D register.
+* 
+* @param: f_pc the current PC value.
+* @param: needRegIds indicates whether regids are needed.
+* @param:  needValC indicates whether a valC is needed.
 */
 void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t & rA, uint64_t & rB)
 {
@@ -223,11 +249,16 @@ void FetchStage::getRegIds(uint64_t f_pc, bool needRegIds, uint64_t & rA, uint64
    }
 }
 
-/*
-* buildValC -  if need_valC is true, this method
-* reads 8 bytes from memory and builds
-* and returns the valC that is then used as
-* input to the D register
+/**
+* buildValC
+* 
+* Reads 8 bytes from memory and builds and returns the valC that is then used as input to the D register.
+*
+* @param: f_pc the current PC value.
+* @param: needRegIds indicates whether regids are needed.
+* @param:  needValC indicates whether a valC is needed.
+*
+* @return: the constructed valC. 
 */
 uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
 {

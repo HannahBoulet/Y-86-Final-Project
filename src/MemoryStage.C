@@ -71,7 +71,14 @@ void MemoryStage::setWInput(PipeReg * wreg, uint64_t stat, uint64_t icode,
    wreg->set(W_DSTM, dstM);
 }
 
-
+/**
+* mem_addr
+*
+* Obtains the address that is used to access memory.
+*
+* @param: mdreg Pointer to the Memory Stage pipeline register containing relevant information.
+* @return: the selected memory address based on the icode.
+*/
 uint64_t MemoryStage::mem_addr(PipeReg * mdreg)
 {
    uint64_t icode = mdreg->get(M_ICODE);
@@ -87,7 +94,14 @@ uint64_t MemoryStage::mem_addr(PipeReg * mdreg)
    return 0;
 }
 
-
+/**
+* mem_read 
+*
+* Examines the icode to determine if it corresponds to a memory read operation.
+*
+* @param: mdreg Pointer to the Memory Stage pipeline register containing relevant information.
+* @return: true if the instruction requires a memory read, false otherwise.
+*/
 bool MemoryStage::mem_read(PipeReg * mdreg)
 {
    uint64_t icode = mdreg->get(M_ICODE);
@@ -99,9 +113,14 @@ bool MemoryStage::mem_read(PipeReg * mdreg)
    return 0;
 }
 
-/*
-//HCL for Mem Write component
-bool mem_write = M_icode in { IRMMOVQ, IPUSHQ, ICALL };*/
+/**
+* mem_write
+*
+* Examines icode to determine if it corresponds to a memory write operation.
+*
+* @param: mdreg Pointer to the Memory Stage pipeline register containing relevant information.
+* @return: true if memory write, false otherwise
+*/
 bool MemoryStage::mem_write(PipeReg * mdreg)
 {
    uint64_t icode = mdreg->get(M_ICODE);
