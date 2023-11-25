@@ -24,25 +24,17 @@ bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
 
    uint64_t stat = mdreg->get(M_STAT);
    uint64_t icode = mdreg->get(M_ICODE);
-   //uint64_t iCND = mdreg->get(M_CND);
    uint64_t dste = mdreg->get(M_DSTE);
    uint64_t dstm = mdreg->get(M_DSTM);
    uint64_t valE = mdreg->get(M_VALE);
    uint64_t valA = mdreg->get(M_VALA);
-  
-
-   // call Addr method to obtain the address used to access memory
    uint64_t address = mem_addr(mdreg);
-
-   // if the mem_read method returns true, use Memory class to read a long
    m_valM = 0;
    bool error = false;
    if (mem_read(mdreg))
    {
       m_valM = mem->getLong(address, error);
    }
-
-   //  If the mem_write returns true use your Memory class to write M_valA to memory
    if (mem_write(mdreg))
    {
       mem->putLong(valA, address, error);
@@ -79,35 +71,28 @@ void MemoryStage::setWInput(PipeReg * wreg, uint64_t stat, uint64_t icode,
    wreg->set(W_DSTM, dstM);
 }
 
-//HCL for Addr component
-/*
-word mem_addr = [
-   M_icode in { IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ } : M_valE;
-   M_icode in { IPOPQ, IRET } : M_valA;
-   1: 0;  
-];
-*/
+
 uint64_t MemoryStage::mem_addr(PipeReg * mdreg)
 {
-   if (mdreg->get(M_ICODE) == Instruction::IRMMOVQ || mdreg->get(M_ICODE) == Instruction::IPUSHQ 
-      || mdreg->get(M_ICODE) == Instruction::ICALL || mdreg->get(M_ICODE) == Instruction::IMRMOVQ)
+   uint64_t icode = mdreg->get(M_ICODE);
+   if (icode == Instruction::IRMMOVQ || icode == Instruction::IPUSHQ 
+      || icode == Instruction::ICALL || icode == Instruction::IMRMOVQ)
       {
          return mdreg->get(M_VALE);
       }
-   if (mdreg->get(M_ICODE) == Instruction::IPOPQ || mdreg->get(M_ICODE) == Instruction::IRET)
+   if (icode == Instruction::IPOPQ || icode == Instruction::IRET)
    {
       return mdreg->get(M_VALA);
    }
    return 0;
 }
 
-/*
-//HCL for Mem Read component
-bool mem_read = M_icode in { IMRMOVQ, IPOPQ, IRET };*/
+
 bool MemoryStage::mem_read(PipeReg * mdreg)
 {
-   if (mdreg->get(M_ICODE) == Instruction::IMRMOVQ || mdreg->get(M_ICODE) == Instruction::IPOPQ
-      || mdreg->get(M_ICODE) == Instruction::IRET)
+   uint64_t icode = mdreg->get(M_ICODE);
+   if (icode == Instruction::IMRMOVQ || icode == Instruction::IPOPQ
+      || icode == Instruction::IRET)
       {
          return 1;
       }
@@ -119,8 +104,9 @@ bool MemoryStage::mem_read(PipeReg * mdreg)
 bool mem_write = M_icode in { IRMMOVQ, IPUSHQ, ICALL };*/
 bool MemoryStage::mem_write(PipeReg * mdreg)
 {
-   if (mdreg->get(M_ICODE) == Instruction::IRMMOVQ || mdreg->get(M_ICODE) == Instruction::IPUSHQ
-      || mdreg->get(M_ICODE) == Instruction::ICALL)
+   uint64_t icode = mdreg->get(M_ICODE);
+   if (icode == Instruction::IRMMOVQ || icode == Instruction::IPUSHQ
+      || icode == Instruction::ICALL)
       {
          return 1;
       }

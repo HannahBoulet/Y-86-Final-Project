@@ -94,93 +94,107 @@ void DecodeStage::setEInput(PipeReg * Ereg, uint64_t stat,
    Ereg->set(E_VALB, valB);
 }
 
-/*
- * d_srcAfun - Determines the source register
- * A for the Execute Stage based on the instruction 
- * type in the Decode Stage
-*/
+/**
+ * d_srcAFun
+ * Determines the source register A for the Execute Stage based on the instruction type in the Decode Stage.
+ * @param dreg Pointer to the pipeline register containing relevant information.
+ * @return The source register A for the Execute Stage.
+ */
 uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
 {
-   if(dreg->get(D_ICODE)==Instruction::IRRMOVQ || dreg->get(D_ICODE)==Instruction::IRMMOVQ || dreg->get(D_ICODE)==Instruction::IOPQ || dreg->get(D_ICODE)==Instruction::IPUSHQ)
+   uint64_t icode = dreg->get(D_ICODE);
+
+   if(icode==Instruction::IRRMOVQ || icode==Instruction::IRMMOVQ || icode==Instruction::IOPQ || icode==Instruction::IPUSHQ)
    {
       return dreg->get(D_RA);
    }
-   if(dreg->get(D_ICODE)==Instruction::IPOPQ || dreg->get(D_ICODE)==Instruction::IRET)
+   if(icode==Instruction::IPOPQ || icode==Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
    return RegisterFile::RNONE;
 }
-/*
- * d_srcBFun - Determines the source register B 
- * for the Execute Stage based on the instruction
- * type in the Decode Stage.
+
+/**
+ * d_srcBFun
+ * Determines the source register B for the Execute Stage based on the instruction type in the Decode Stage.
+ * @param dreg Pointer to the pipeline register containing relevant information.
+ * @return The source register B for the Execute Stage.
  */
 uint64_t DecodeStage::d_srcBFun(PipeReg * dreg)
 {
-   if(dreg->get(D_ICODE)==Instruction::IOPQ||dreg->get(D_ICODE)==Instruction::IRMMOVQ||dreg->get(D_ICODE)==Instruction::IMRMOVQ)
+   uint64_t icode = dreg->get(D_ICODE);
+   if(icode==Instruction::IOPQ||icode==Instruction::IRMMOVQ||icode==Instruction::IMRMOVQ)
    {
       return dreg->get(D_RB);
    }
-   if(dreg->get(D_ICODE)==Instruction::IPUSHQ||dreg->get(D_ICODE)==Instruction::IPOPQ||dreg->get(D_ICODE)==Instruction::ICALL||dreg->get(D_ICODE)==Instruction::IRET)
+   if(icode==Instruction::IPUSHQ||icode==Instruction::IPOPQ||icode==Instruction::ICALL||icode==Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
    return RegisterFile::RNONE;
-
 }
-/*
- * d_dstEFun - Determines the destination register 
- * E for the Execute Stage based on the 
- * instruction type in the Decode Stage.
-*/
+
+/**
+ * d_dstEFun
+ * Determines the destination register E for the Execute Stage based on the instruction type in the Decode Stage.
+ * @param dreg Pointer to the pipeline register containing relevant information.
+ * @return The destination register E for the Execute Stage.
+ */
 uint64_t DecodeStage::d_dstEFun(PipeReg * dreg)
 {
-   if(dreg->get(D_ICODE)==Instruction::IRRMOVQ||dreg->get(D_ICODE)==Instruction::IIRMOVQ||dreg->get(D_ICODE)==Instruction::IOPQ)
+   uint64_t icode = dreg->get(D_ICODE);
+
+   if(icode==Instruction::IRRMOVQ||icode==Instruction::IIRMOVQ||icode==Instruction::IOPQ)
    {
       return dreg->get(D_RB);
    }
-   if(dreg->get(D_ICODE)==Instruction::IPUSHQ || dreg->get(D_ICODE)==Instruction::IPOPQ||dreg->get(D_ICODE)==Instruction::ICALL||dreg->get(D_ICODE)==Instruction::IRET)
+   if(icode==Instruction::IPUSHQ || icode==Instruction::IPOPQ||icode==Instruction::ICALL||icode==Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
    return RegisterFile::RNONE;
 }
 
-/*
- * d_dstMFun - Determines the destination 
- * register M for the Memory Stage based on the 
- * instruction type in the Decode Stage.
-*/
+/**
+ * d_dstMFun
+ * Determines the destination register M for the Memory Stage based on the instruction type in the Decode Stage.
+ * @param dreg Pointer to the pipeline register containing relevant information.
+ * @return The destination register M for the Memory Stage.
+ */
 uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
 {
-   if(dreg->get(D_ICODE)==Instruction::IMRMOVQ||dreg->get(D_ICODE)==Instruction::IPOPQ)
+   uint64_t icode = dreg->get(D_ICODE);
+
+   if(icode==Instruction::IMRMOVQ||icode==Instruction::IPOPQ)
    {
       return dreg->get(D_RA);
    }
    return RegisterFile::RNONE;
 }
 
- //HCL for Sel+FwdA
-/*word d_valA = [
-D_icode in { ICALL, IJXX } : D_valP;
-d_srcA == RNONE : 0;          
-d_srcA == e_dstE : e_valE;    # value computed by ExecuteStage
-d_srcA == M_dstM : m_valM;    # value obtained from Memory by MemoryStage
-d_srcA == M_dstE : M_valE;    # value in M register
-d_srcA == W_dstM : W_valM;    # value in W register
-d_srcA == W_dstE : W_valE;    # value in W register
-1 : d_rvalA;                  # value from register file
-];
-*/
+/**
+ * selFwdAFun
+ * Selects the forwarding source A for the current stage based on different pipeline register values.
+ * @param: dreg Pointer to the Decode Stage pipeline register containing relevant information.
+ * @param: mreg Pointer to the Memory Stage pipeline register containing relevant information.
+ * @param: wreg Pointer to the Writeback Stage pipeline register containing relevant information.
+ * @param: srcA The source register A value to determine forwarding.
+ * @return The selected forwarding source A value.
+ */
 uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
 {
    bool error = false;
-   if (dreg->get(D_ICODE) == Instruction::ICALL || dreg->get(D_ICODE) == Instruction::IJXX)
+   uint64_t icode = dreg->get(D_ICODE);
+
+   if (icode == Instruction::ICALL || icode == Instruction::IJXX)
    {
       return dreg->get(D_VALP);
    }
-   if (srcA == RegisterFile::RNONE) return 0;
+   if (srcA == RegisterFile::RNONE)
+   { 
+      return 0;
+   }
    if(srcA == Stage::e_dstE)
    {
       return Stage::e_valE;
@@ -203,25 +217,23 @@ uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg,
    }
    return rf->readRegister(srcA, error);
 }
-/*
- * FwdBFun - Selects the source value for 
- * operand B in the Execute Stage, considering 
- * forwarding from previous stages.
- //HCL for FwdB
-word d_valB = [
-d_srcB == RNONE : 0;
-d_srcB == e_dstE : e_valE;    # value computed by ExecuteStage
-d_srcB == M_dstM : m_valM;    # value obtained from Memory by MemoryStage
-d_srcB == M_dstE : M_valE;    # value in M register
-d_srcB == W_dstM : W_valM;    # value in W register
-d_srcB == W_dstE : W_valE;    # value in W register
-1 : d_rvalB;                  # value from register file
-];
-*/
+
+/**
+ * FwdBFun
+ * Determines the forwarding source B for the current stage based on different pipeline register values.
+ * @param: dreg Pointer to the Decode Stage pipeline register containing relevant information.
+ * @param: mreg Pointer to the Memory Stage pipeline register containing relevant information.
+ * @param: wreg Pointer to the Writeback Stage pipeline register containing relevant information.
+ * @param: srcB The source register B value to determine forwarding.
+ * @return The selected forwarding source B value.
+ */
 uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
-   if (srcB == RegisterFile::RNONE) return 0;
+   if (srcB == RegisterFile::RNONE) 
+   {
+      return 0;
+   }
    if(srcB == Stage::e_dstE)
    {
       return Stage::e_valE;
@@ -244,4 +256,3 @@ uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, ui
    }
    return rf->readRegister(srcB, error);
 }
-

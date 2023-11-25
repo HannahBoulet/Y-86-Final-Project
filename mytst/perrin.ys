@@ -5,47 +5,95 @@
     irmovq 2, %rdx
     irmovq 0, %rbx
     irmovq 0, %rsp
-    irmovq 5, %rbp
-    irmovq 5, %rsi
-    irmovq 7, %rdi
-    irmovq 0xa, %r8
-    irmovq 0xc, %r9
-    irmovq 0x11, %r10
-    irmovq 0x16, %r11
-    irmovq 0x1d, %r12
-    irmovq 0x27, %r13
-    irmovq 0x33, %r14
-
-    addq %rax, %rcx
-    irmovq 3, %rdx
-    irmovq -4, %rbx
-    addq %rdx, %rbx
-    irmovq 5, %rsp
-    irmovq -5, %rbp
-    addq %rsp, %rbp
-    irmovq 0x8000000000000000, %rsi
-    irmovq 0x8000000000000000, %rdi
-    addq %rsi, %rdi
-    irmovq 0x7fffffffffffffff, %r8
-    irmovq 0x7fffffffffffffff, %r9
-    addq %r8, %r9
-    irmovq 0x8000000000000000, %r10
-    irmovq 0x8000000000000001, %r11
-    addq %r10, %r11
-
-    irmovq 0x33, %rax
-    irmovq 0x27, %rcx
-    irmovq 0x1d, %rdx
-    irmovq 0x16, %rbx
-    irmovq 0x11, %rsp
-    irmovq 0xc, %rbp
-    irmovq 0xa, %rsi
-    irmovq 7, %rdi
-    irmovq 5, %r8
-    irmovq 5, %r9
-    irmovq 2, %r10
-    irmovq 3, %r11
-    irmovq 2, %r12
+    irmovq 0, %rbp
+    irmovq 0, %rsi
+    irmovq 0, %rdi
+    irmovq 0, %r8
+    irmovq 0, %r9
+    irmovq 0, %r10
+    irmovq 0, %r11
+    irmovq 0, %r12
     irmovq 0, %r13
-    irmovq 3, %r14
-    halt
+    irmovq 0, %r14
+
+    addq %rax, %rbx
+    nop
+    addq %rcx, %rbx 
+    addq %rcx, %rsp
+    nop
+    addq %rdx, %rsp
+    addq %rdx, %rbp
+    nop
+    addq %rbx, %rbp
+    addq %rbx, %rsi
+    nop
+    addq %rsp, %rsi
+    addq %rsp, %rdi
+    nop
+    addq %rbp, %rdi
+    addq %rbp, %r8
+    nop
+    addq %rsi, %r8 
+    addq %rsi, %r9
+    nop
+    addq %rdi, %r9
+    addq %rdi, %r10
+    nop
+    addq %r8, %r10
+    addq %r8, %r11
+    nop
+    addq %r9, %r11
+    addq %r9, %r12
+    nop
+    addq %r10, %r12
+    addq %r10, %r13
+    nop
+    addq %r11, %r13 
+    addq %r11, %r14
+    nop
+    addq %r12, %r14
+    nop
+#Reverse the values in the reg
+    nop
+    xorq %rax, %r14
+    xorq %r14, %rax
+    nop
+    xorq %rax, %r14 
+    nop
+    xorq %rcx, %r13
+    nop
+    xorq %r13, %rcx
+    nop
+    xorq %rcx, %r13 
+    nop
+    xorq %rdx, %r12
+    nop
+    xorq %r12, %rdx
+    nop
+    xorq %rdx, %r12
+    nop
+    xorq %rbx, %r11
+    nop
+    xorq %r11, %rbx
+    nop
+    xorq %rbx, %r11
+    nop
+    xorq %rsp, %r10
+    nop
+    xorq %r10, %rsp
+    nop
+    xorq %rsp, %r10 
+    nop
+    xorq %rbp, %r9
+    nop
+    xorq %r9, %rbp
+    nop
+    xorq %rbp, %r9
+    nop
+    xorq %rsi, %r8
+    nop
+    xorq %r8, %rsi
+    nop
+    xorq %rsi, %r8 
+
+halt

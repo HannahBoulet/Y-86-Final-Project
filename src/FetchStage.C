@@ -38,11 +38,6 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t valC = 0, valP = 0, stat = 0, predPC = 0;
    bool needvalC = false;
    bool needregId = false;
-
-   //TODO 
-   //select PC value and read byte from memory
-   //set icode and ifun using byte read from memory
-
    uint64_t f_pc = selectPC(freg, mreg, wreg);
    uint64_t inst = mem->getByte(f_pc, mem_error);
    icode = Tools::getBits(inst, 4, 7);
@@ -120,20 +115,7 @@ void FetchStage::setDInput(PipeReg * dreg, uint64_t stat, uint64_t icode,
    dreg->set(D_VALC, valC);
    dreg->set(D_VALP, valP);
 }
-//TODO
-//Write your selectPC, needRegIds, needValC, PC increment, and predictPC methods
-//Remember to add declarations for these to FetchStage.h
 
-// Here is the HCL describing the behavior for some of these methods. 
-/*
-
-//selectPC method: input is F, M, and W registers
-word f_pc = [
-    M_icode == IJXX && !M_Cnd : M_valA;
-    W_icode == IRET : W_valM;
-    1: F_predPC;
-];
-*/
 uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mdreg, PipeReg * wreg)
 {
    if (mdreg->get(M_ICODE) == Instruction::IJXX && !mdreg->get(M_CND))
@@ -189,7 +171,6 @@ uint64_t FetchStage::predictPC(uint64_t f_icode, uint64_t f_valC, uint64_t f_val
    {
       return f_valC;
    }
-
    return f_valP;
 }
 

@@ -9,7 +9,7 @@
 #include "Instruction.h"
 #include "E.h"
 #include "M.h"
-/*
+/**
  * doClockLow
  *
  * Performs the Fetch stage combinational logic that is performed when
@@ -56,7 +56,8 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    return false;
 }
 
-/* doClockHigh
+/**
+ * doClockHigh
  *
  * applies the appropriate control signal to the F
  * and D register intances
@@ -69,7 +70,8 @@ void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
    mreg->normal();
 }
 
-/* setMInput 
+/**
+ * setMInput 
  * provides the input to potentially be stored in the E register
  * during doClockHigh.
  * 
@@ -95,55 +97,69 @@ void ExecuteStage::setMInput(PipeReg * mreg, uint64_t stat, uint64_t icode, uint
     mreg->set(M_DSTM, dstM);
 }
 
-/*
- * aluA - Computes the value of operand A for the ALU.
-*/
+/**
+ * aluA
+ * Computes the value of operand A for the ALU based on the instruction code.
+ * @param: ereg Pointer to the pipeline register containing relevant information.
+ * @return The computed value of operand A.
+ */
 uint64_t ExecuteStage::aluA(PipeReg * ereg)
 {
-   if (ereg->get(E_ICODE) == Instruction::IRRMOVQ || ereg->get(E_ICODE) == Instruction::IOPQ)
+   uint64_t icode = ereg->get(E_ICODE);
+   if (icode == Instruction::IRRMOVQ || icode == Instruction::IOPQ)
    {
       return ereg->get(E_VALA);
    }
-   if (ereg->get(E_ICODE) == Instruction::IIRMOVQ || ereg->get(E_ICODE) == Instruction::IRMMOVQ 
-      || ereg->get(E_ICODE) == Instruction::IMRMOVQ)
+   if (icode == Instruction::IIRMOVQ || icode == Instruction::IRMMOVQ 
+      || icode == Instruction::IMRMOVQ)
    {
       return ereg->get(E_VALC);
    }
-   if (ereg->get(E_ICODE) == Instruction::ICALL || ereg->get(E_ICODE) == Instruction::IPUSHQ)
+   if (icode == Instruction::ICALL || icode == Instruction::IPUSHQ)
    {
       return -8;
    }
-   if (ereg->get(E_ICODE) == Instruction::IRET || ereg->get(E_ICODE) == Instruction::IPOPQ)
+   if (icode == Instruction::IRET || icode == Instruction::IPOPQ)
    {
       return 8;
    }
    return 0;
 }
 
-/*
- * aluB - Computes the value of operand B for the ALU.
-*/
+/**
+ * aluB
+ * Computes the value of operand B for the ALU based on the instruction code.
+ * @param: ereg Pointer to the pipeline register containing relevant information.
+ * @return The computed value of operand B.
+ */
+
 uint64_t ExecuteStage::aluB(PipeReg * ereg)
 {
-   if (ereg->get(E_ICODE) == Instruction::IRMMOVQ || ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IOPQ
-      || ereg->get(E_ICODE) == Instruction::ICALL || ereg->get(E_ICODE) == Instruction::IPUSHQ || ereg->get(E_ICODE) == Instruction::IRET
-      || ereg->get(E_ICODE) == Instruction::IPOPQ)
-      {
+   uint64_t icode = ereg->get(E_ICODE);
+   if (icode == Instruction::IRMMOVQ || icode == Instruction::IMRMOVQ || icode == Instruction::IOPQ
+      || icode == Instruction::ICALL || icode == Instruction::IPUSHQ || icode == Instruction::IRET
+      || icode == Instruction::IPOPQ)
+   {
          return ereg->get(E_VALB);
-      }
-   if (ereg->get(E_ICODE) == Instruction::IRRMOVQ || ereg->get(E_ICODE) == Instruction::IIRMOVQ)
+   }
+   if (icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ)
    {
       return 0;
    }
 
    return 0;
 }
-/*
- * aluFun - Determines the ALU operation code.
-*/
+/**
+ * aluFun
+ * Determines the ALU operation code based on the instruction code.
+ * @param ereg Pointer to the pipeline register containing relevant information.
+ * @return The ALU operation code.
+ */
+
 uint64_t ExecuteStage::aluFun(PipeReg * ereg)
 {
-   if (ereg->get(E_ICODE) == Instruction::IOPQ)
+   uint64_t icode = ereg->get(E_ICODE);
+   if (icode == Instruction::IOPQ)
    {
       return ereg->get(E_IFUN);
    }
@@ -151,31 +167,47 @@ uint64_t ExecuteStage::aluFun(PipeReg * ereg)
    return Instruction::ADDQ;
 }
 
-/*
- * set_cc - Checks if condition codes need to be set.
-*/
+/**
+ * set_cc
+ * Checks if condition codes need to be set based on the instruction code.
+ * @param: ereg Pointer to the pipeline register containing relevant information.
+ * @return True if condition codes need to be set, otherwise false.
+ */
+
 bool ExecuteStage::set_cc(PipeReg * ereg)
 {
-   if (ereg->get(E_ICODE) == Instruction::IOPQ)
+   uint64_t icode = ereg->get(E_ICODE);
+   if (icode == Instruction::IOPQ)
    {
       return true;
    }
    return false;
 }
-/*
- * set_dstE - Sets the destination register for the result of the ALU operation.
-*/
+/**
+ * set_dstE
+ * Sets the destination register for the result of the ALU operation based on the instruction code and condition.
+ * @param ereg Pointer to the pipeline register containing relevant information.
+ * @param cnd Condition indicating whether to set the destination register.
+ * @return The destination register for the result of the ALU operation.
+ */
+
 uint64_t ExecuteStage::set_dstE(PipeReg * ereg, uint64_t cnd)
 {
-   if((ereg->get(E_ICODE) == Instruction::IRRMOVQ) && !cnd)
+   uint64_t icode = ereg->get(E_ICODE);
+   if((icode == Instruction::IRRMOVQ) && !cnd)
    {
       return RegisterFile::RNONE;
    } 
    return ereg->get(E_DSTE);
 }
-/*
- * getALU - Performs the ALU operation based on the ALU function code.
-*/
+/**
+ * getALU
+ * Performs the Arithmetic Logic Unit (ALU) operation based on the specified function code.
+ * @param: aluA The first operand for the ALU operation.
+ * @param: aluB The second operand for the ALU operation.
+ * @param: aluFun The ALU function code indicating the operation type.
+ * @return The result of the ALU operation on the given operands.
+ */
 uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
 {
    if(alufun == Instruction::ADDQ)
@@ -195,11 +227,15 @@ uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
    {
       return aluA ^ aluB;
    }
-
 }
-/*
- * CC - Sets the condition codes based on the result of the ALU operation.
-*/
+/**
+ * CC
+ * Updates the condition codes based on the executed ALU operation and values.
+ * @param valE The value computed by the ALU.
+ * @param aluA The first ALU operand.
+ * @param aluB The second ALU operand.
+ * @param aluFun The ALU function code indicating the operation type.
+ */
 void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun)
 {
    bool error;
@@ -216,7 +252,13 @@ void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluF
    }
    cc->setConditionCode(!valE, ConditionCodes::ZF, error); 
 }
-
+/**
+ * CondFun
+ * Determines the condition for executing a specific stage based on instruction and function codes.
+ * @param: icode The instruction code.
+ * @param: ifun The function code.
+ * @return Boolean indicating whether the stage should be executed based on the condition.
+ */
 bool ExecuteStage::CondFun(uint64_t icode, uint64_t ifun)
 {
    bool error = false;

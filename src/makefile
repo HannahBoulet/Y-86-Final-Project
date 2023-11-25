@@ -71,13 +71,19 @@ $(OBJD)/FetchStage.o: $(INC)/PipeRegArray.h $(INC)/PipeReg.h $(INC)/Memory.h \
  $(INC)/FetchStage.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/Status.h \
  $(INC)/F.h $(INC)/D.h $(INC)/M.h $(INC)/W.h $(INC)/Tools.h
 
-$(OBJD)/DecodeStage.o: $(INC)/DecodeStage.h $(INC)/PipeRegArray.h
+$(OBJD)/DecodeStage.o: $(INC)/DecodeStage.h $(INC)/PipeRegArray.h $(INC)/E.h  \
+ $(INC)/D.h $(INC)/M.h $(INC)/W.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/RegisterFile.h \
+ $(INC)/ConditionCodes.h
 
-$(OBJD)/ExecuteStage.o: $(INC)/ExecuteStage.h $(INC)/PipeRegArray.h
+$(OBJD)/ExecuteStage.o: $(INC)/ExecuteStage.h $(INC)/PipeRegArray.h $(INC)/Instruction.h \
+ $(INC)/ConditionCodes.h $(INC)/Stage.h $(INC)/Tools.h $(INC)/E.h $(INC)/M.h $(INC)/Stage.h
 
-$(OBJD)/MemoryStage.o: $(INC)/MemoryStage.h $(INC)/PipeRegArray.h
+$(OBJD)/MemoryStage.o: $(INC)/MemoryStage.h $(INC)/PipeRegArray.h $(INC)/RegisterFile.h \
+ $(INC)/ConditionCodes.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/W.h $(INC)/M.h
 
-$(OBJD)/WritebackStage.o: $(INC)/WritebackStage.h $(INC)/PipeRegArray.h
+$(OBJD)/WritebackStage.o: $(INC)/WritebackStage.h $(INC)/PipeRegArray.h $(INC)/PipeRegArray.h \
+ $(INC)/W.h $(INC)/ConditionCodes.h $(INC)/Instruction.h \
+ $(INC)/RegisterFile.h $(INC)/Stage.h $(INC)/Status.h
 
 $(OBJD)/PipeRegArray.o: $(INC)/PipeReg.h $(INC)/PipeRegArray.h $(INC)/F.h $(INC)/D.h \
  $(INC)/E.h $(INC)/M.h $(INC)/W.h
