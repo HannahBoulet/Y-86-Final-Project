@@ -9,6 +9,8 @@
 #include "Instruction.h"
 #include "E.h"
 #include "M.h"
+#include "W.h"
+#include "Status.h"
 /**
  * doClockLow
  *
@@ -22,7 +24,7 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 {
    PipeReg * ereg = pipeRegs->getExecuteReg();
    PipeReg * mreg = pipeRegs->getMemoryReg();
-
+   PipeReg * wreg = pipeRegs->getWritebackReg();
   
    uint64_t stat = ereg->get(E_STAT);
    uint64_t icode = ereg->get(E_ICODE);
@@ -38,21 +40,20 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t V_aluB = aluB(ereg);
    uint64_t fun = aluFun(ereg);
 
-
    uint64_t dste = set_dstE(ereg, cnd);
 
    uint64_t valE = getALU(V_aluA, V_aluB, fun);
 
-   if(set_cc(ereg))
+   if(set_cc(ereg, wreg))
    {
       CC(valE, V_aluA, V_aluB, fun);
    }
-
    Stage::e_valE = valE;
    Stage::e_dstE = dste;
-   
+
    setMInput(mreg, stat, icode, cnd, valE, valA, dste, dstm);
- 
+   M_bubble = calculateControlSignals(wreg);
+
    return false;
 }
 
@@ -67,7 +68,14 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * mreg  = pipeRegs->getMemoryReg();
-   mreg->normal();
+   if(!M_bubble)
+   {
+      mreg->normal();
+   }
+   else
+   {
+      ((M *)mreg)->bubble();
+   }
 }
 
 /**
@@ -174,13 +182,16 @@ uint64_t ExecuteStage::aluFun(PipeReg * ereg)
  * @return True if condition codes need to be set, otherwise false.
  */
 
-bool ExecuteStage::set_cc(PipeReg * ereg)
+bool ExecuteStage::set_cc(PipeReg * ereg, PipeReg * wreg)
 {
    uint64_t icode = ereg->get(E_ICODE);
-   if (icode == Instruction::IOPQ)
+   uint64_t w_stat = wreg->get(W_STAT);
+   if ((icode == Instruction::IOPQ) && (Stage::m_stat != Status::SADR && Stage::m_stat != Status::SINS && Stage::m_stat != Status::SHLT ) 
+      && (w_stat != Status::SADR && w_stat != Status::SINS && w_stat != Status::SHLT))
    {
       return true;
    }
+
    return false;
 }
 /**
@@ -300,3 +311,23 @@ bool ExecuteStage::CondFun(uint64_t icode, uint64_t ifun)
    return 0;
 }
 
+
+/**
+bool M_bubble = m_stat in { SADR, SINS, SHLT } || W_stat in { SADR, SINS, SHLT };
+*/
+
+/*
+calculateControlSignals
+
+*/
+
+bool ExecuteStage::calculateControlSignals(PipeReg * wreg)
+{
+   uint64_t w_stat = wreg->get(W_STAT);
+   if ((Stage::m_stat == Status::SADR || Stage::m_stat == Status::SINS || Stage::m_stat == Status::SHLT) 
+   || (w_stat == Status::SADR ||w_stat == Status::SINS ||w_stat == Status::SHLT))
+         {
+            return true;
+         }
+   return false;
+}

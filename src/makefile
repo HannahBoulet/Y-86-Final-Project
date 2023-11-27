@@ -76,10 +76,11 @@ $(OBJD)/DecodeStage.o: $(INC)/DecodeStage.h $(INC)/PipeRegArray.h $(INC)/E.h  \
  $(INC)/ConditionCodes.h
 
 $(OBJD)/ExecuteStage.o: $(INC)/ExecuteStage.h $(INC)/PipeRegArray.h $(INC)/Instruction.h \
- $(INC)/ConditionCodes.h $(INC)/Stage.h $(INC)/Tools.h $(INC)/E.h $(INC)/M.h $(INC)/Stage.h
+ $(INC)/ConditionCodes.h $(INC)/Stage.h $(INC)/Tools.h $(INC)/E.h $(INC)/M.h $(INC)/Status.h \
+ $(INC)/W.h
 
 $(OBJD)/MemoryStage.o: $(INC)/MemoryStage.h $(INC)/PipeRegArray.h $(INC)/RegisterFile.h \
- $(INC)/ConditionCodes.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/W.h $(INC)/M.h
+ $(INC)/ConditionCodes.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/W.h $(INC)/M.h $(INC)/Status.h 
 
 $(OBJD)/WritebackStage.o: $(INC)/WritebackStage.h $(INC)/PipeRegArray.h $(INC)/PipeRegArray.h \
  $(INC)/W.h $(INC)/ConditionCodes.h $(INC)/Instruction.h \

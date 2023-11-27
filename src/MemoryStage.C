@@ -6,6 +6,7 @@
 #include "PipeReg.h"
 #include "Instruction.h"
 #include "Stage.h"
+#include "Status.h"
 #include "W.h"
 #include "M.h"
 /*
@@ -30,15 +31,20 @@ bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t valA = mdreg->get(M_VALA);
    uint64_t address = mem_addr(mdreg);
    m_valM = 0;
-   bool error = false;
+   bool mem_error = false;
    if (mem_read(mdreg))
    {
-      m_valM = mem->getLong(address, error);
+      m_valM = mem->getLong(address, mem_error);
    }
    if (mem_write(mdreg))
    {
-      mem->putLong(valA, address, error);
+      mem->putLong(valA, address, mem_error);
    }
+   if(mem_error)
+   {
+      stat = Status::SADR;
+   }
+   Stage::m_stat = stat;
    setWInput(wreg, stat, icode, valE, m_valM, dste, dstm);
    return false;
    
