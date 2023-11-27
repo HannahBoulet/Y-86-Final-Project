@@ -41,6 +41,7 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t valB = FwdBFun(dreg, mreg, wreg, d_srcB);
 
    setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
+   calculateControlSignals(ereg, dreg, mreg);
    return false;
 }
 
@@ -54,7 +55,10 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
 void DecodeStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * ereg = pipeRegs->getExecuteReg();  
-   ereg->normal();
+   if (!e_bubble)
+   {
+      ereg->normal();
+   }
 }
 
 /* setEInput
@@ -255,4 +259,37 @@ uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, ui
       return wreg->get(W_VALE);
    }
    return rf->readRegister(srcB, error);
+}
+
+/**
+* E_bubble
+* Bubbles the Execute stage.
+*
+* @param: ereg a pointer to the pipeline register for the execute stage.
+* @param: dreg a pointer to the pipeline register for the decode stage.
+* @param: mreg a pointer to the pipeline register for the memory stage.
+* @return: true if execute is bubbled, false otherwise.
+*/
+bool DecodeStage::E_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+{
+   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
+      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+   {
+      return true;
+   }
+   return false;
+}
+
+/**
+* calculateControlSignals
+* Calculates the control signal from E_bubble.
+*
+* @param: ereg a pointer to the pipeline register for the execute stage.
+* @param: dreg a pointer to the pipeline register for the decode stage.
+* @param: mreg a pointer to the pipeline register for the memory stage.
+* @return: Calculated value for E_bubble.
+*/
+uint64_t DecodeStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+{
+   e_bubble = E_bubble(ereg, dreg, mreg);
 }

@@ -9,6 +9,8 @@
 #include "Instruction.h"
 #include "RegisterFile.h"
 #include "Status.h"
+#include "Stage.h"
+#include "E.h"
 #include "W.h"
 #include "M.h"
 #include "F.h"
@@ -29,6 +31,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
 {
    PipeReg * freg = pipeRegs->getFetchReg();
    PipeReg * dreg = pipeRegs->getDecodeReg();
+   PipeReg * ereg = pipeRegs->getExecuteReg();
    PipeReg * mreg = pipeRegs->getMemoryReg();
    PipeReg * wreg = pipeRegs->getWritebackReg();
 
@@ -69,6 +72,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    freg->set(F_PREDPC, predPC);
    
    setDInput(dreg, stat, icode, ifun, rA, rB, valC, valP);
+   calculateControlSignals(ereg, dreg, mreg);
    return false;
 }
 
@@ -83,8 +87,14 @@ void FetchStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * freg = pipeRegs->getFetchReg();  
    PipeReg * dreg = pipeRegs->getDecodeReg();
-   freg->normal();
-   dreg->normal();
+   if (!f_stall)
+   {
+      freg->normal();
+   }
+   if (!d_stall)
+   {
+      dreg->normal();
+   }
 }
 
 /* setDInput
@@ -271,6 +281,13 @@ uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
       return Tools::buildLong(valArray);  
 }
 
+/**
+* instr_valid
+* Checks if the given instruction is valid.
+*
+* @param: icode the instruction code to be checked.
+* @return: true if instruction is valid, false otherwise.
+*/
 bool FetchStage::instr_valid(uint64_t icode)
 {
    return (icode == Instruction::INOP ||  icode == Instruction::IHALT 
@@ -281,6 +298,15 @@ bool FetchStage::instr_valid(uint64_t icode)
           || icode == Instruction::IPOPQ);
 }
 
+/**
+* f_stat
+* Determines status code for Fetch stage.
+*
+* @param: mem_error indicates whether a memory error has ocurred.
+* @param: i_valid indicates validity of an instruction.
+* @param: the fetch stage instruction code.
+* @return: the status code that indicates the current state of the fetch stage.
+*/
 uint64_t FetchStage::f_stat(bool mem_error, bool i_valid, uint64_t f_icode)
 {
    if(mem_error)
@@ -297,3 +323,62 @@ uint64_t FetchStage::f_stat(bool mem_error, bool i_valid, uint64_t f_icode)
    }
    return Status::SAOK;
 }
+
+/**
+* F_stall
+* Stalls the Fetch stage. Detects a load/use between an instruction in the ExecuteStage
+* and an instruction in the DecodeStage.
+*
+* @param: ereg a pointer to the pipeline register for the execute stage.
+* @param: dreg a pointer to the pipeline register for the fetch stage.
+* @param: mreg a pointer to the pipeline register for the fetch stage.
+* @return: true if stall, false otherwise
+*/
+bool FetchStage::F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+{
+   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
+   && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+   {
+      return true;
+   }
+
+   return false;
+}
+
+/**
+* D_stall
+* Stalls the Decode stage. Detects a load/use between an instruction in the ExecuteStage
+* and an instruction in the DecodeStage.
+*
+* @param: ereg a pointer to the pipeline register for the execute stage.
+* @param: dreg a pointer to the pipeline register for the fetch stage.
+* @param: mreg a pointer to the pipeline register for the fetch stage.
+* @return: true if stall, false otherwise
+*/
+bool FetchStage::D_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+{
+   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
+   && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+   {
+      return true;
+   }
+   return false;
+}
+
+/**
+* calculateControlSignals 
+* Calls each of the two methods that calculates F_stall and D_stall.
+*
+* @param: ereg a pointer to the pipeline register for the execute stage.
+* @param: dreg a pointer to the pipeline register for the fetch stage.
+* @param: mreg a pointer to the pipeline register for the fetch stage.
+* @return: the calculated values for F_stall and D_stall
+*/
+uint64_t FetchStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+{
+   f_stall = F_stall(ereg, dreg, mreg);
+   d_stall = D_stall(ereg, dreg, mreg);
+}
+
+
+
