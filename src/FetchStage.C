@@ -40,8 +40,8 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    bool needregId = false;
    uint64_t f_pc = selectPC(freg, mreg, wreg);
    uint64_t inst = mem->getByte(f_pc, mem_error);
-   icode = Tools::getBits(inst, 4, 7);
-   ifun = Tools::getBits(inst, 0, 3);
+   icode = mem_error? Instruction::INOP: icode;
+   ifun =mem_error? Instruction::FNONE: ifun;
 
    if (mem_error)
    {
@@ -57,6 +57,9 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    {
       stat = Status::SAOK;
    }
+   //part 2 fetch stage stuff
+   bool valid = instr_valid(icode);
+   stat = f_stat(mem_error, valid, icode);
 
    needvalC = need_valC(icode);
 
@@ -272,4 +275,31 @@ uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
             valArray[i] = mem->getByte(addr, error);
          }
       return Tools::buildLong(valArray);  
+}
+
+bool FetchStage::instr_valid(uint64_t icode)
+{
+   return (icode == Instruction::INOP ||  icode == Instruction::IHALT 
+          || icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ 
+          || icode == Instruction::IRMMOVQ || icode == Instruction::IMRMOVQ 
+          || icode == Instruction::IOPQ || icode == Instruction::IJXX 
+          || icode == Instruction::IRET || icode == Instruction::IPUSHQ 
+          || icode == Instruction::IPOPQ);
+}
+
+uint64_t FetchStage::f_stat(bool mem_error, bool i_valid, bool f_icode)
+{
+   if(mem_error)
+   {
+      return Status::SADR;
+   }
+   if(!i_valid)
+   {
+      return Status::SINS;
+   }
+   if(f_icode == Instruction::IHALT)
+   {
+      return Status::SHLT;
+   }
+   return Status::SAOK;
 }
