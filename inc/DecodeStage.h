@@ -7,7 +7,7 @@ class DecodeStage: public Stage
 {
    private:
       //TODO: provide declarations for new methods
-      bool e_bubble;
+      bool E_bubble;
       uint64_t d_srcAFun(PipeReg * dreg);
       uint64_t d_srcBFun(PipeReg * dreg);
       uint64_t d_dstEFun(PipeReg * dreg);
@@ -21,7 +21,6 @@ class DecodeStage: public Stage
          uint64_t valC, uint64_t valB,uint64_t dstE,
          uint64_t dstM,uint64_t srcA, uint64_t srcB); 
       
-      bool E_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
       uint64_t calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
    
 

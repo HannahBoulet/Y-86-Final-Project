@@ -31,8 +31,8 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t icode = dreg->get(D_ICODE);
    uint64_t ifun = dreg->get(D_IFUN);
    uint64_t valC = dreg->get(D_VALC);
-   uint64_t d_srcA = d_srcAFun(dreg);
-   uint64_t d_srcB = d_srcBFun(dreg);
+   Stage::d_srcA = d_srcAFun(dreg);
+   Stage::d_srcB = d_srcBFun(dreg);
    
    uint64_t dstE = d_dstEFun(dreg);
    uint64_t dstM = d_dstMFun(dreg);
@@ -41,7 +41,7 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t valB = FwdBFun(dreg, mreg, wreg, d_srcB);
 
    setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
-   calculateControlSignals(ereg, dreg, mreg);
+   E_bubble = calculateControlSignals(ereg, dreg, mreg);
    return false;
 }
 
@@ -55,9 +55,13 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
 void DecodeStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * ereg = pipeRegs->getExecuteReg();  
-   if (!e_bubble)
+   if (!E_bubble)
    {
       ereg->normal();
+   }
+   else
+   {
+      ((E *)ereg)->bubble();
    }
 }
 
@@ -261,24 +265,6 @@ uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, ui
    return rf->readRegister(srcB, error);
 }
 
-/**
-* E_bubble
-* Bubbles the Execute stage.
-*
-* @param: ereg a pointer to the pipeline register for the execute stage.
-* @param: dreg a pointer to the pipeline register for the decode stage.
-* @param: mreg a pointer to the pipeline register for the memory stage.
-* @return: true if execute is bubbled, false otherwise.
-*/
-bool DecodeStage::E_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
-{
-   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
-      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
-   {
-      return true;
-   }
-   return false;
-}
 
 /**
 * calculateControlSignals
@@ -291,5 +277,11 @@ bool DecodeStage::E_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 */
 uint64_t DecodeStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
-   e_bubble = E_bubble(ereg, dreg, mreg);
+   // E_icode in { IMRMOVQ, IPOPQ } &&  E_dstM in { d_srcA, d_srcB };
+   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
+      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+   {
+      return true;
+   }
+   return false;
 }
