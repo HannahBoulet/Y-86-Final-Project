@@ -302,9 +302,9 @@ bool FetchStage::instr_valid(uint64_t icode)
    return (icode == Instruction::INOP ||  icode == Instruction::IHALT 
           || icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ 
           || icode == Instruction::IRMMOVQ || icode == Instruction::IMRMOVQ 
-          || icode == Instruction::IOPQ || icode == Instruction::IJXX 
-          || icode == Instruction::IRET || icode == Instruction::IPUSHQ 
-          || icode == Instruction::IPOPQ);
+          || icode == Instruction::IOPQ || icode == Instruction::IJXX
+          || icode == Instruction::ICALL || icode == Instruction::IRET 
+          || icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ);
 }
 
 /**
@@ -345,8 +345,9 @@ uint64_t FetchStage::f_stat(bool mem_error, bool i_valid, uint64_t f_icode)
 */
 bool FetchStage::F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
-   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
-   && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+   if (((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
+   && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB)) 
+   || (Instruction::IRET == dreg->get(D_ICODE) || Instruction::IRET == ereg->get(E_ICODE) || Instruction::IRET == mreg->get(M_ICODE)))
    {
       return true;
    }
@@ -360,11 +361,9 @@ bool FetchStage::F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 * and an instruction in the DecodeStage.
 *
 * @param: ereg a pointer to the pipeline register for the execute stage.
-* @param: dreg a pointer to the pipeline register for the fetch stage.
-* @param: mreg a pointer to the pipeline register for the fetch stage.
 * @return: true if stall, false otherwise
 */
-bool FetchStage::D_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+bool FetchStage::D_stall(PipeReg * ereg)
 {
    if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
    && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
@@ -374,12 +373,21 @@ bool FetchStage::D_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
    return false;
 }
 
-bool FetchStage::getD_bubble(PipeReg * ereg)
+/**
+* getD_bubble
+* Calculates the value of the bubbled D register.
+* @param: ereg a pointer to the pipeline register for the execute stage.
+* @param: dreg a pointer to the pipeline register for the fetch stage.
+* @param: mreg a pointer to the pipeline register for the fetch stage.
+* @return: the calculated value of D_bubble.
+*/
+bool FetchStage::getD_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
-   return (ereg->get(E_ICODE) == Instruction::IJXX && !Stage::e_Cnd);
+   return ((ereg->get(E_ICODE) == Instruction::IJXX && !Stage::e_Cnd) 
+      || (!((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+      && (Instruction::IRET == dreg->get(D_ICODE) || Instruction::IRET == ereg->get(E_ICODE) || Instruction::IRET == mreg->get(M_ICODE))));
+
 }
-
-
 /**
 * calculateControlSignals 
 * Calls each of the two methods that calculates F_stall and D_stall.
@@ -392,8 +400,8 @@ bool FetchStage::getD_bubble(PipeReg * ereg)
 uint64_t FetchStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
    f_stall = F_stall(ereg, dreg, mreg);
-   d_stall = D_stall(ereg, dreg, mreg);
-   D_bubble = getD_bubble(ereg);
+   d_stall = D_stall(ereg);
+   D_bubble = getD_bubble(ereg, dreg, mreg);
 
 }
 

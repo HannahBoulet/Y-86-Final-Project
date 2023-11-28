@@ -18,7 +18,6 @@ class FetchStage: public Stage
       uint64_t PCincrement(uint64_t f_pc, bool needRegIds, bool needValC);
       void getRegIds(uint64_t f_pc, bool needRegIds, uint64_t &rA, uint64_t &rB);
       uint64_t f_stat(bool mem_error, bool i_valid, uint64_t f_icode);
-      bool getD_bubble(PipeReg * ereg);
 
       uint64_t buildValC(uint64_t f_pc, bool needRegIds, bool needvalC);
       bool instr_valid(uint64_t icode);
@@ -29,7 +28,9 @@ class FetchStage: public Stage
                      uint64_t valC, uint64_t valP);
 
       bool F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
-      bool D_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
+      bool D_stall(PipeReg * ereg);
+      bool getD_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
+
       uint64_t calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
    public:
       //These are the only methods called outside of the class
