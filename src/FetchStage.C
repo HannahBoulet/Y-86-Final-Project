@@ -64,6 +64,8 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
 
    valP = PCincrement(f_pc, needregId, needvalC); 
    valC = buildValC(f_pc, needregId, needvalC);
+   
+   calculateControlSignals(ereg, dreg, mreg);
 
    predPC = predictPC(icode, valC, valP);
 
@@ -72,7 +74,6 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    freg->set(F_PREDPC, predPC);
    
    setDInput(dreg, stat, icode, ifun, rA, rB, valC, valP);
-   calculateControlSignals(ereg, dreg, mreg);
    return false;
 }
 
@@ -87,13 +88,21 @@ void FetchStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * freg = pipeRegs->getFetchReg();  
    PipeReg * dreg = pipeRegs->getDecodeReg();
+   
    if (!f_stall)
    {
       freg->normal();
    }
+   if(D_bubble)
+   {
+      ((D *)dreg)->bubble();
+   }
+   else
+   {
    if (!d_stall)
    {
       dreg->normal();
+   }
    }
 }
 
@@ -365,6 +374,12 @@ bool FetchStage::D_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
    return false;
 }
 
+bool FetchStage::getD_bubble(PipeReg * ereg)
+{
+   return (ereg->get(E_ICODE) == Instruction::IJXX && !Stage::e_Cnd);
+}
+
+
 /**
 * calculateControlSignals 
 * Calls each of the two methods that calculates F_stall and D_stall.
@@ -378,6 +393,8 @@ uint64_t FetchStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, Pip
 {
    f_stall = F_stall(ereg, dreg, mreg);
    d_stall = D_stall(ereg, dreg, mreg);
+   D_bubble = getD_bubble(ereg);
+
 }
 
 

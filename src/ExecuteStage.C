@@ -50,6 +50,7 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
    }
    Stage::e_valE = valE;
    Stage::e_dstE = dste;
+   Stage::e_Cnd = cnd;
 
    setMInput(mreg, stat, icode, cnd, valE, valA, dste, dstm);
    M_bubble = calculateControlSignals(wreg);

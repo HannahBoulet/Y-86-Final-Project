@@ -277,8 +277,9 @@ uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, ui
 */
 uint64_t DecodeStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
-   // E_icode in { IMRMOVQ, IPOPQ } &&  E_dstM in { d_srcA, d_srcB };
-   if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
+   // bool E_bubble = ( E_icode == IJXX && !e_Cnd ) ||  
+               // ( E_icode in { IMRMOVQ, IPOPQ } &&  E_dstM in { d_srcA, d_srcB } );
+   if ((ereg->get(E_ICODE) == Instruction::IJXX && !Stage::e_Cnd) || (ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
       && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
    {
       return true;
