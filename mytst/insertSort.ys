@@ -22,17 +22,21 @@
 # 
 # TODO: Provide missing code (see description below of insert function)
 #
-loop:
+mainloop:
         call insert 
 
-        irmovq $1, %rbx         #incrementing rcx 
-        subq %rbx, %rcx
+        irmovq $8, %rbx         # incrementing rsi
+        addq %rbx, %rsi
 
-        subq %rax, %rcx         # if rax = rcx 
-        je done
+        irmovq $1, %rbx         # incrementing rcx 
+        addq %rbx, %rcx
+
+        rrmovq %rcx, %rbx
+        subq %rax, %rbx         # if rax = rcx 
+
+        jne mainloop            # jump if not equal 
+        halt
         
-
-              
 #
 # insert function
 # Takes the address of the first element in the list
@@ -50,6 +54,7 @@ loop:
 insert:
         rrmovq %rdi, %r8
         addq %rsi, %r8                  # get next element 
+
 loop:
         mrmovq (%r8), %r9 
         mrmovq -8(%r8), %r10            # current element 
@@ -58,8 +63,7 @@ loop:
         subq %r10, %r12 
         jge done                         # if negative, new element in right spot
 
-        # swap 
-        rmmovq %r10, (%r8)
+        rmmovq %r10, (%r8)               # swap 
         rmmovq %r9, -8(%r8)
 
         irmovq $8, %r13
@@ -67,9 +71,10 @@ loop:
 
         rrmovq %r8, %r14
         subq %rdi, %r14 
-        je done
 
-        jmp loop 
+        je done                         # jump if equal
+
+        jmp loop                        # continue looping until its equal
 
 done:
         ret
