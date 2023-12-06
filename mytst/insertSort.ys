@@ -24,16 +24,12 @@
 #
 mainloop:
         call insert 
-
         irmovq $8, %rbx         # incrementing rsi
         addq %rbx, %rsi
-
         irmovq $1, %rbx         # incrementing rcx 
         addq %rbx, %rcx
-
         rrmovq %rcx, %rbx
         subq %rax, %rbx         # if rax = rcx 
-
         jne mainloop            # jump if not equal 
         halt
         
@@ -58,22 +54,16 @@ insert:
 loop:
         mrmovq (%r8), %r9 
         mrmovq -8(%r8), %r10            # current element 
-
         rrmovq %r9, %r12
         subq %r10, %r12 
         jge done                         # if negative, new element in right spot
-
         rmmovq %r10, (%r8)               # swap 
         rmmovq %r9, -8(%r8)
-
         irmovq $8, %r13
         subq %r13, %r8 
-
         rrmovq %r8, %r14
         subq %rdi, %r14 
-
         je done                         # jump if equal
-
         jmp loop                        # continue looping until its equal
 
 done:

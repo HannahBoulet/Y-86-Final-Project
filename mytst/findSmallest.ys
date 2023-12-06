@@ -25,16 +25,12 @@ loop:
     rrmovq %rdx, %r9
     subq %rax, %r9
     cmovle %rdx, %rax
-
     andq %rdx, %rdx
     je done
-
     andq %rdi, %rdi
     je done
-
     addq %rsi, %rdi
     jmp loop
-
 done:
     ret
 #

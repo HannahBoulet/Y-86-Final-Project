@@ -15,7 +15,6 @@
     irmovq 0, %r12
     irmovq 0, %r13
     irmovq 0, %r14
-
     addq %rax, %rbx
     nop
     addq %rcx, %rbx 
@@ -53,9 +52,8 @@
     nop
     addq %r12, %r14
     nop
-#Reverse the values in the reg
     nop
-    xorq %rax, %r14
+    xorq %rax, %r14         #Reverse the values in the reg
     xorq %r14, %rax
     nop
     xorq %rax, %r14 

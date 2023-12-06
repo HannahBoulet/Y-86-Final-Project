@@ -2,24 +2,20 @@
         #initialzing to 1   
         #initialize %rax to 0
         irmovq 0, %rax
-
 #initialize another register to the address of the first number
 #it can also be helpful to initialize another register to 1
         irmovq 1, %rcx
         irmovq 0, %rdx
         irmovq 0, %rbx
         irmovq 0, %rsi  
-
 #for each number:  
 #get the number out of memory
-
         irmovq nums, %rdx   
         mrmovq (%rdx), %rbx    
         nop
         nop
 #cause the condition codes to be modified based upon value of the number
 #add 1 to %rax if number <= 0; otherwise, add 0 to %rax
-
         addq %rsi, %rbx 
         cmovle %rcx, %rsi
         addq %rsi, %rax
@@ -27,49 +23,39 @@
         mrmovq 8(%rdx), %rbx
         nop
         nop
-
         addq %rsi, %rbx
         cmovle %rcx, %rsi
         addq %rsi, %rax  
-        irmovq 0, %rsi         
-                
+        irmovq 0, %rsi              
         mrmovq 16(%rdx), %rbx   
         nop
         nop
-
         addq %rsi, %rbx
         cmovle %rcx, %rsi
         addq %rsi, %rax
         irmovq 0, %rsi
-
         mrmovq 24(%rdx), %rbx   
         nop
         nop
-
         addq %rsi, %rbx
         cmovle %rcx, %rsi
         addq %rsi, %rax
         irmovq 0, %rsi
-
         mrmovq 32(%rdx), %rbx
         nop
         nop
-
         addq %rsi, %rbx
         cmovle %rcx, %rsi
         addq %rsi, %rax
         irmovq 0, %rsi
-
         mrmovq 40(%rdx), %rbx   
         nop
         nop
 #cause the condition codes to be modified based upon value of the number
 #add 1 to %rax if number <= 0; otherwise, add 0 to %rax
-
         addq %rsi, %rbx
         cmovle %rcx, %rsi
         addq %rsi, %rax
-
         halt
         .align 8
 result: .quad 0     #should be 3 at end
