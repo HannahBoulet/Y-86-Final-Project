@@ -38,7 +38,7 @@ all:$(OBJS)
 
 $(OBJD)/ConditionCodes.o: $(INC)/ConditionCodes.h $(INC)/Tools.h
 
-$(OBJD)/Memory.o: $(INC)/Memory.h
+$(OBJD)/Memory.o: $(INC)/Memory.h $(INC)/Tools.h 
 
 $(OBJD)/RegisterFile.o: $(INC)/RegisterFile.h
 
@@ -69,22 +69,23 @@ $(OBJD)/W.o: $(INC)/W.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/PipeRe
 
 $(OBJD)/FetchStage.o: $(INC)/PipeRegArray.h $(INC)/PipeReg.h $(INC)/Memory.h \
  $(INC)/FetchStage.h $(INC)/Instruction.h $(INC)/RegisterFile.h $(INC)/Status.h \
- $(INC)/F.h $(INC)/D.h $(INC)/M.h $(INC)/W.h $(INC)/Tools.h
+ $(INC)/F.h $(INC)/D.h $(INC)/M.h $(INC)/W.h $(INC)/Tools.h $(INC)/Stage.h 
 
 $(OBJD)/DecodeStage.o: $(INC)/DecodeStage.h $(INC)/PipeRegArray.h $(INC)/E.h  \
  $(INC)/D.h $(INC)/M.h $(INC)/W.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/RegisterFile.h \
- $(INC)/ConditionCodes.h
+ $(INC)/ConditionCodes.h $(INC)/PipeRegField.h  $(INC)/PipeReg.h
 
 $(OBJD)/ExecuteStage.o: $(INC)/ExecuteStage.h $(INC)/PipeRegArray.h $(INC)/Instruction.h \
  $(INC)/ConditionCodes.h $(INC)/Stage.h $(INC)/Tools.h $(INC)/E.h $(INC)/M.h $(INC)/Status.h \
- $(INC)/W.h
+ $(INC)/W.h $(INC)/RegisterFile.h $(INC)/PipeRegField.h  $(INC)/PipeReg.h
 
 $(OBJD)/MemoryStage.o: $(INC)/MemoryStage.h $(INC)/PipeRegArray.h $(INC)/RegisterFile.h \
- $(INC)/ConditionCodes.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/W.h $(INC)/M.h $(INC)/Status.h 
+ $(INC)/ConditionCodes.h $(INC)/Instruction.h $(INC)/Stage.h $(INC)/W.h $(INC)/M.h \
+ $(INC)/Status.h $(INC)/PipeReg.h
 
-$(OBJD)/WritebackStage.o: $(INC)/WritebackStage.h $(INC)/PipeRegArray.h $(INC)/PipeRegArray.h \
- $(INC)/W.h $(INC)/ConditionCodes.h $(INC)/Instruction.h \
- $(INC)/RegisterFile.h $(INC)/Stage.h $(INC)/Status.h
+$(OBJD)/WritebackStage.o: $(INC)/WritebackStage.h $(INC)/PipeRegArray.h $(INC)/Memory.h \
+ $(INC)/W.h $(INC)/ConditionCodes.h $(INC)/Instruction.h $(INC)/PipeReg.h \
+ $(INC)/RegisterFile.h $(INC)/Stage.h $(INC)/Status.h 
 
 $(OBJD)/PipeRegArray.o: $(INC)/PipeReg.h $(INC)/PipeRegArray.h $(INC)/F.h $(INC)/D.h \
  $(INC)/E.h $(INC)/M.h $(INC)/W.h

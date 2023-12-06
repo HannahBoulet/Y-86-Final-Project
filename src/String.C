@@ -14,17 +14,7 @@
    */
    String::String(std::string str)
    {
-      //Prevent calling constructor with NULL string
       assert(str.length() > 0);
-
-      //TODO
-      //Dynamically allocate an array of chars just large enough to 
-      //hold the chars of the std::string.
-      //Don't store the NULL or allocate space for it.
-      //(You don't need the NULL since you are storing the length.)
-      //Copy the characters in the std::string (excluding a NULL)
-      //into your str array.
-      //Set length to the size of the array.
       length = str.size();
       this -> str = new char[length];
       for (int i = 0; i < length ; i++) 
@@ -40,14 +30,7 @@
    */
    char * String::get_cstr()
    {
-      //TODO
-      //You need to dynamically allocate space (array of char) for the
-      //c-string that you are building
-      //That space needs to include space for a NULL
-      //Don't forget to add the NULL.
-      // add to length for null 
       int32_t clength = length + 1;
-      //dynamically allocate space for array of char
       char * cstr = new char[clength];
       for (int  i = 0; i < length ; i++) 
       {
@@ -55,7 +38,7 @@
       }
       cstr[length] = '\0';
 
-      return cstr; //change this
+      return cstr;
    }
 
    /*
@@ -65,16 +48,13 @@
    */
    std::string String::get_stdstr()
    {
-      //TODO
-      //You need to declare std::string and append the characters
-      //from your str array to it
       std::string stdstr;
 
       for (int i = 0; i < length; i++) 
       {
          stdstr += str[i];
       }
-      return stdstr;  //change this
+      return stdstr; 
    }
 
    /*
@@ -84,7 +64,6 @@
    */
    int32_t String::get_length()
    {
-      //TODO
       return length;  
    }
 
@@ -93,15 +72,12 @@
    *
    * Returns true if this index into the str array is
    * invalid (negative or greater than array size)
+   * @param idx: the index value to be checked against the array size
+   * @return: true if the index is invalid, false otherwise
    */
    bool String::badIndex(int32_t idx)
    {
-      //TODO
-      if (idx < 0 || idx >= length) 
-      {
-         return true;
-      }
-      return false; 
+      return (idx < 0 || idx >= length); 
    }
 
    /*
@@ -124,37 +100,26 @@
    *    the array at the specified indices are all the character 
    *    what
    */
-   bool String::isRepeatingChar(char what, int32_t startIdx, 
-                              int32_t len, bool & error)
+   bool String::isRepeatingChar(char what, int32_t startIdx, int32_t len, bool &error) 
    {
-      //TODO
-      //use your badIndex method to check if the
-      //starting and ending indices are valid
-      if (len < 0) 
-      {
-         error = true;
-         return false;
-      }
-      int32_t endIdx = startIdx + len - 1;
-
-      // First case
-      if (badIndex(startIdx) || badIndex(endIdx)) 
-      {
-         error = true;
-         return false;
-      }
-      // Second case
-      for (int32_t i = startIdx; i <= endIdx; i++) 
-      {
-         if (str[i] != what) {
+    if (len < 0 || badIndex(startIdx) || badIndex(startIdx + len - 1)) 
+    {
+        error = true;
+        return false;
+    }
+    
+    for (int32_t i = startIdx; i < startIdx + len; i++) 
+    {
+        if (str[i] != what) 
+        {
             error = false;
             return false;
-         }
-      }
-      // Third case
-      error = false;
-      return true;
+        }
+    }
+    error = false;
+    return true;
    }
+
 
    /*
    * convert2Hex
@@ -179,38 +144,16 @@
    */
    uint32_t String::convert2Hex(int32_t startIdx, int32_t len, bool & error)
    {
-      //TODO
-      //use your badIndex method
-      //you can use strtoul for this or you can just write the code to do
-      //it yourself. Doing it yourself also makes it easier to simultaneously
-      //check for errors.  If the array contains '2''a''f' then you 
-      //would return (2 << 8) + (10 << 4) + 15.  You can build it 
-      //by setting a result variable and adding to it each time 
-      //through the loop.
-      //First time through loop: result = 0x2
-      //Second time through loop: result = 0x2a
-      //Third time through loop: result = 0x2af
-      if (len < 0) 
-      {
-         error = true;
-         return false;
-      }
-      // indices invalid, case 2
-      int32_t endIdx = startIdx + len - 1;
-      if (badIndex(startIdx) || badIndex(endIdx)) 
+      if (len < 0 || badIndex(startIdx) || badIndex(startIdx + len - 1)) 
       {
          error = true;
          return 0;
       }
-
-      // indices valid, checking if hex
       uint32_t result = 0;
-      //case 1
       for (int32_t i = startIdx; i < startIdx + len; i++) 
       {
          char ch = str[i];
          uint32_t value;
-         // case 1
          if (ch >= '0' && ch <= '9') 
          {
             value = (ch - '0');
@@ -228,7 +171,6 @@
             error = true;
             return 0;
          }
-
          result = (result << 4) + value;
       }
       error = false;
@@ -246,25 +188,12 @@
    */
    bool String::isChar(char what, int32_t idx, bool & error)
    {
-      //TODO
-      //case 1
-      if (idx < 0 || idx >= length) 
-      {
-         error = true;
-         return false;
-      }
-      //case 2
-      else if (str[idx] == what) 
-      {
-         error = false;
-         return true;
-      }
-      //case 3 
-      else 
-      {
-         error = false;
-         return false;
-      }
+   if (idx < 0 || idx >= length) {
+        error = true;
+        return false; 
+    }
+    error = false;
+    return (str[idx] == what);
    } 
 
    /* 
@@ -286,14 +215,11 @@
    */
    bool String::isHex(int32_t startIdx, int len, bool & error)
    {
-      //TODO
-      //case 1
       if(startIdx < 0 || len < 0 || startIdx + len > length)
       {
          error = true;
          return false;
       }
-      //case 2
       for (int32_t i = startIdx; i < startIdx + len; ++i) 
       {
          char c = str[i];
@@ -303,7 +229,6 @@
             return false;
          }
       }
-      //case 3
       error = false; 
       return true;
    } 
@@ -324,27 +249,21 @@
    */
    bool String::isSubString(const char * subStr, int32_t startIdx, bool & error)
    {
-      //TODO
-      //variables
+
       int32_t sub = (int32_t)strlen(subStr); 
-      int32_t subPlace = 0;
-      //case 1
-      if (startIdx < 0 || (sub + startIdx) > length)
+      if (badIndex(startIdx) || startIdx + sub > length)
       {
          error = true;
          return false;
       }
-      //case 2
       for (int32_t i = startIdx; i < sub; i++)
       {
-         if (subStr[subPlace] != str[i])
+         if (subStr[i] != str[startIdx + i])
          {
             error = false;
             return false;
          }
-         subPlace++;
       }
-      //case 3
       error = false;
       return true;
    }
@@ -367,27 +286,20 @@
    bool String::isSubString(std::string subStr, int32_t startIdx, 
                            bool & error)
    {  
-      //TODO
-      //variables 
       int32_t sub = (int32_t)subStr.length();
-      int32_t subPlace = 0;
-      //case 1
-      if (startIdx < 0 || (startIdx + sub) > length)
+      if (badIndex(startIdx) || startIdx + sub > length) 
       {
          error = true;
          return false;
       }
-      //case 2
       for (int32_t i = startIdx; i < sub; i++)
       {
-         if (subStr[subPlace] != str[i])
+         if (subStr[sub] != str[sub + i])
          {
             error = false;
             return false;
          }
-         subPlace++;
       }
-      //case 3
       error = false;
       return true;
    }

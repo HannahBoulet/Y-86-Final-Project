@@ -208,7 +208,7 @@
       // count non-spaces in data
       int count = 0;
       int dataLength = 0;
-      for (int i = Loader::databegin; i < 27; i++) 
+      for (int i = Loader::databegin; i < Loader::comment - 1; i++) 
       {
          if (!inputLine->isChar(' ', i, error)) 
          {

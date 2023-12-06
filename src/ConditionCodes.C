@@ -49,14 +49,10 @@ bool ConditionCodes::getConditionCode(int32_t ccNum, bool & error)
 {
    //Use your getBits in Tools.C to get the bit out of codes.
    //Don't use "magic" numbers.
-   if (ccNum != ConditionCodes::OF && ccNum != ConditionCodes::SF && ccNum != ConditionCodes::ZF) {
-      error = true;
+   if (ccNum != ConditionCodes::OF && ccNum != ConditionCodes::SF && ccNum != ConditionCodes::ZF) 
+   {
       return false;
    }
-   else {
-      error = false;
-   }
-   
    return Tools::getBits(codes, ccNum, ccNum);
 }
 
@@ -68,8 +64,8 @@ bool ConditionCodes::getConditionCode(int32_t ccNum, bool & error)
  * if the ccNum value is out of range (not ConditionCodes::OF and not ConditionCodes::SF 
  * and * not ConditionCodes::ZF) then codes does not get modified. 
  *
- * @param value to set the condition code bit to (true/1 or false/0)
- * @param ccNum condition code number, either ConditionCodes::OF, ConditionCodes::SF, or 
+ * @param: value to set the condition code bit to (true/1 or false/0)
+ * @param: ccNum condition code number, either ConditionCodes::OF, ConditionCodes::SF, or 
  *        ConditionCodes::ZF
  * @return error is set to true if ccNum is out of range and
  *         false otherwise
@@ -77,23 +73,18 @@ bool ConditionCodes::getConditionCode(int32_t ccNum, bool & error)
 void ConditionCodes::setConditionCode(bool value, int32_t ccNum, 
                                       bool & error)
 {
-   //Use your setBits and clearBits in Tools.C. 
-   //Don't use "magic" numbers in your code.
-   if (ccNum != ConditionCodes::OF && ccNum != ConditionCodes::SF && ccNum != ConditionCodes::ZF) {
-      error = true;
+   if (ccNum != ConditionCodes::OF && ccNum != ConditionCodes::SF && ccNum != ConditionCodes::ZF) 
+   {
+      return;
    }
-   else {
-      error = false;
-   }
-
-   if (value == true) { // condition code bit 1
+   if (value == true) 
+   { 
       codes = Tools::setBits(codes, ccNum, ccNum);
    }
-   else { // condition code bit 0
+   else 
+   { 
       codes = Tools::clearBits(codes, ccNum, ccNum);
    }
-
-   return;
 }
 
 /*

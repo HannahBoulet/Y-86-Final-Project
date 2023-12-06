@@ -30,7 +30,7 @@ RegisterFile::RegisterFile()
 RegisterFile * RegisterFile::getInstance()
 {
    if (regInstance == NULL) {
-      RegisterFile::regInstance = new RegisterFile();
+      regInstance = new RegisterFile();
    }
    return regInstance;
 }
@@ -70,12 +70,13 @@ uint64_t RegisterFile::readRegister(int32_t regNumber, bool & error)
 void RegisterFile::writeRegister(uint64_t value, int32_t regNumber, 
                                  bool & error)
 {
-   //Use RegisterFile::size to determine whether regNumber is valid
-   if (regNumber < RegisterFile::size && regNumber >= 0) {
+   if (regNumber < RegisterFile::size && regNumber >= 0) 
+   {
       error = false;
       reg[regNumber] = value;
    }
-   else {
+   else 
+   {
       error = true;
    }
 

@@ -20,34 +20,32 @@
  */
 bool MemoryStage::doClockLow(PipeRegArray * pipeRegs)
 {
+   m_valM = 0;
+   bool mem_error = false;
    PipeReg * mdreg = pipeRegs->getMemoryReg();
    PipeReg * wreg = pipeRegs->getWritebackReg();
-
-   uint64_t stat = mdreg->get(M_STAT);
+   Stage::m_stat = mdreg->get(M_STAT);
    uint64_t icode = mdreg->get(M_ICODE);
    uint64_t dste = mdreg->get(M_DSTE);
    uint64_t dstm = mdreg->get(M_DSTM);
    uint64_t valE = mdreg->get(M_VALE);
    uint64_t valA = mdreg->get(M_VALA);
-   uint64_t address = mem_addr(mdreg);
-   m_valM = 0;
-   bool mem_error = false;
-   if (mem_read(mdreg))
+   uint64_t address = mem_addr(icode, valA, valE);
+
+   if (mem_read(icode))
    {
       m_valM = mem->getLong(address, mem_error);
    }
-   if (mem_write(mdreg))
+   if (mem_write(icode))
    {
       mem->putLong(valA, address, mem_error);
    }
    if(mem_error)
    {
-      stat = Status::SADR;
+      m_stat = Status::SADR;
    }
-   Stage::m_stat = stat;
-   setWInput(wreg, stat, icode, valE, m_valM, dste, dstm);
+   setWInput(wreg, m_stat, icode, valE, m_valM, dste, dstm);
    return false;
-   
 }
 
 /* doClockHigh
@@ -82,20 +80,21 @@ void MemoryStage::setWInput(PipeReg * wreg, uint64_t stat, uint64_t icode,
 *
 * Obtains the address that is used to access memory.
 *
-* @param: mdreg Pointer to the Memory Stage pipeline register containing relevant information.
+* @param: icode - the instruction code representing the type of instruction
+* @param: valA - value from register A
+* @param: valE - value from register E
 * @return: the selected memory address based on the icode.
 */
-uint64_t MemoryStage::mem_addr(PipeReg * mdreg)
+uint64_t MemoryStage::mem_addr(uint64_t icode, uint64_t valA,  uint64_t valE)
 {
-   uint64_t icode = mdreg->get(M_ICODE);
    if (icode == Instruction::IRMMOVQ || icode == Instruction::IPUSHQ 
       || icode == Instruction::ICALL || icode == Instruction::IMRMOVQ)
       {
-         return mdreg->get(M_VALE);
+         return valE;
       }
    if (icode == Instruction::IPOPQ || icode == Instruction::IRET)
    {
-      return mdreg->get(M_VALA);
+      return valA;
    }
    return 0;
 }
@@ -105,18 +104,13 @@ uint64_t MemoryStage::mem_addr(PipeReg * mdreg)
 *
 * Examines the icode to determine if it corresponds to a memory read operation.
 *
-* @param: mdreg Pointer to the Memory Stage pipeline register containing relevant information.
+* @param: icode - the instruction code representing the type of instruction
 * @return: true if the instruction requires a memory read, false otherwise.
 */
-bool MemoryStage::mem_read(PipeReg * mdreg)
+bool MemoryStage::mem_read(uint64_t icode)
 {
-   uint64_t icode = mdreg->get(M_ICODE);
-   if (icode == Instruction::IMRMOVQ || icode == Instruction::IPOPQ
-      || icode == Instruction::IRET)
-      {
-         return 1;
-      }
-   return 0;
+   return (icode == Instruction::IMRMOVQ || icode == Instruction::IPOPQ
+      || icode == Instruction::IRET);
 }
 
 /**
@@ -124,16 +118,11 @@ bool MemoryStage::mem_read(PipeReg * mdreg)
 *
 * Examines icode to determine if it corresponds to a memory write operation.
 *
-* @param: mdreg Pointer to the Memory Stage pipeline register containing relevant information.
+* @param: icode - the instruction code representing the type of instruction
 * @return: true if memory write, false otherwise
 */
-bool MemoryStage::mem_write(PipeReg * mdreg)
+bool MemoryStage::mem_write(uint64_t icode)
 {
-   uint64_t icode = mdreg->get(M_ICODE);
-   if (icode == Instruction::IRMMOVQ || icode == Instruction::IPUSHQ
-      || icode == Instruction::ICALL)
-      {
-         return 1;
-      }
-   return 0;
+   return (icode == Instruction::IRMMOVQ || icode == Instruction::IPUSHQ
+      || icode == Instruction::ICALL);
 }
