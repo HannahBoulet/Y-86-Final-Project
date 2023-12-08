@@ -31,7 +31,7 @@ class FetchStage: public Stage
       bool D_stall(PipeReg * ereg);
       bool getD_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
 
-      uint64_t calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
+      void calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg);
    public:
       //These are the only methods called outside of the class
       bool doClockLow(PipeRegArray * pipeRegs);

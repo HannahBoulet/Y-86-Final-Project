@@ -38,10 +38,10 @@ bool DecodeStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t dstM = d_dstMFun(dreg);
    
    uint64_t valA = selFwdAFun(dreg, mreg, wreg, d_srcA);
-   uint64_t valB = FwdBFun(dreg, mreg, wreg, d_srcB);
+   uint64_t valB = FwdBFun(mreg, wreg, d_srcB);
 
    setEInput(ereg, stat, icode, ifun, valA, valC, valB, dstE, dstM, d_srcA, d_srcB);
-   E_bubble = calculateControlSignals(ereg, dreg, mreg);
+   E_bubble = calculateControlSignals(ereg);
    return false;
 }
 
@@ -112,11 +112,12 @@ uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
 
-   if(icode==Instruction::IRRMOVQ || icode==Instruction::IRMMOVQ || icode==Instruction::IOPQ || icode==Instruction::IPUSHQ)
+   if(icode == Instruction::IRRMOVQ || icode == Instruction::IRMMOVQ || icode == Instruction::IOPQ 
+   || icode == Instruction::IPUSHQ)
    {
       return dreg->get(D_RA);
    }
-   if(icode==Instruction::IPOPQ || icode==Instruction::IRET)
+   if(icode == Instruction::IPOPQ || icode == Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
@@ -132,11 +133,12 @@ uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
 uint64_t DecodeStage::d_srcBFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
-   if(icode==Instruction::IOPQ||icode==Instruction::IRMMOVQ||icode==Instruction::IMRMOVQ)
+   if(icode == Instruction::IOPQ  || icode == Instruction::IRMMOVQ || icode==Instruction::IMRMOVQ)
    {
       return dreg->get(D_RB);
    }
-   if(icode==Instruction::IPUSHQ||icode==Instruction::IPOPQ||icode==Instruction::ICALL||icode==Instruction::IRET)
+   if(icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ || icode == Instruction::ICALL 
+      || icode == Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
@@ -153,11 +155,12 @@ uint64_t DecodeStage::d_dstEFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
 
-   if(icode==Instruction::IRRMOVQ||icode==Instruction::IIRMOVQ||icode==Instruction::IOPQ)
+   if(icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ || icode == Instruction::IOPQ)
    {
       return dreg->get(D_RB);
    }
-   if(icode==Instruction::IPUSHQ || icode==Instruction::IPOPQ||icode==Instruction::ICALL||icode==Instruction::IRET)
+   if(icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ 
+      || icode == Instruction::ICALL || icode == Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
@@ -174,7 +177,7 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
 
-   if(icode==Instruction::IMRMOVQ||icode==Instruction::IPOPQ)
+   if(icode == Instruction::IMRMOVQ || icode == Instruction::IPOPQ)
    {
       return dreg->get(D_RA);
    }
@@ -190,52 +193,49 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
  * @param: srcA The source register A value to determine forwarding.
  * @return The selected forwarding source A value.
  */
-uint64_t DecodeStage::selFwdAFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcA)
-{
-   bool error = false;
-   uint64_t icode = dreg->get(D_ICODE);
+uint64_t DecodeStage::selFwdAFun(PipeReg* dreg, PipeReg* mreg, PipeReg* wreg, uint64_t srcA) {
+    bool error = false;
+    uint64_t icode = dreg->get(D_ICODE);
+    uint64_t result = 0;
 
-   if (icode == Instruction::ICALL || icode == Instruction::IJXX)
-   {
-      return dreg->get(D_VALP);
-   }
-   if (srcA == RegisterFile::RNONE)
-   { 
-      return 0;
-   }
-   if(srcA == Stage::e_dstE)
-   {
-      return Stage::e_valE;
-   }
-   else if (srcA == mreg->get(M_DSTM))
-   {
-      return m_valM;
-   }
-   else if(srcA == mreg->get(M_DSTE))
-   {
-      return mreg->get(M_VALE);
-   }
-   else if (srcA == wreg->get(W_DSTM))
-   {
-      return wreg->get(W_VALM);
-   }
-   else if(srcA == wreg->get(W_DSTE))
-   {
-      return wreg->get(W_VALE);
-   }
-   return rf->readRegister(srcA, error);
+    switch (icode) {
+        case Instruction::ICALL:
+        case Instruction::IJXX:
+            result = dreg->get(D_VALP);
+            break;
+
+        case Instruction::IHALT: 
+            break;
+        default:
+            if (srcA == RegisterFile::RNONE) {
+                result = 0;
+            } else if (srcA == Stage::e_dstE) {
+                result = Stage::e_valE;
+            } else if (srcA == mreg->get(M_DSTM)) {
+                result = m_valM;
+            } else if (srcA == mreg->get(M_DSTE)) {
+                result = mreg->get(M_VALE);
+            } else if (srcA == wreg->get(W_DSTM)) {
+                result = wreg->get(W_VALM);
+            } else if (srcA == wreg->get(W_DSTE)) {
+                result = wreg->get(W_VALE);
+            } else {
+                result = rf->readRegister(srcA, error);
+            }
+            break;
+    }
+    return result;
 }
 
 /**
  * FwdBFun
  * Determines the forwarding source B for the current stage based on different pipeline register values.
- * @param: dreg Pointer to the Decode Stage pipeline register containing relevant information.
  * @param: mreg Pointer to the Memory Stage pipeline register containing relevant information.
  * @param: wreg Pointer to the Writeback Stage pipeline register containing relevant information.
  * @param: srcB The source register B value to determine forwarding.
  * @return The selected forwarding source B value.
  */
-uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
+uint64_t DecodeStage::FwdBFun(PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
 {
    bool error = false;
    if (srcB == RegisterFile::RNONE) 
@@ -265,22 +265,21 @@ uint64_t DecodeStage::FwdBFun(PipeReg * dreg, PipeReg * mreg, PipeReg * wreg, ui
    return rf->readRegister(srcB, error);
 }
 
-
 /**
 * calculateControlSignals
 * Calculates the control signal from E_bubble.
 *
 * @param: ereg a pointer to the pipeline register for the execute stage.
-* @param: dreg a pointer to the pipeline register for the decode stage.
-* @param: mreg a pointer to the pipeline register for the memory stage.
 * @return: Calculated value for E_bubble.
 */
-uint64_t DecodeStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+uint64_t DecodeStage::calculateControlSignals(PipeReg * ereg)
 {
-   // bool E_bubble = ( E_icode == IJXX && !e_Cnd ) ||  
-               // ( E_icode in { IMRMOVQ, IPOPQ } &&  E_dstM in { d_srcA, d_srcB } );
-   if ((ereg->get(E_ICODE) == Instruction::IJXX && !Stage::e_Cnd) || (ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
-      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+   uint64_t icode = ereg->get(E_ICODE);
+
+   if ((icode == Instruction::IJXX && !Stage::e_Cnd) 
+      || ((icode == Instruction::IMRMOVQ 
+      || icode == Instruction::IPOPQ) 
+      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB)))
    {
       return true;
    }

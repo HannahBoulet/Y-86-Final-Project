@@ -17,7 +17,6 @@
 #include "D.h"
 #include "Tools.h"
 
-
 /*
  * doClockLow
  *
@@ -43,7 +42,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    bool needregId = false;
    uint64_t f_pc = selectPC(freg, mreg, wreg);
    uint64_t inst = mem->getByte(f_pc, mem_error);
-   //part 2 fetch stage stuff
+
    if(mem_error)
    {
       icode = Instruction::INOP;
@@ -74,6 +73,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    freg->set(F_PREDPC, predPC);
    
    setDInput(dreg, stat, icode, ifun, rA, rB, valC, valP);
+
    return false;
 }
 
@@ -142,20 +142,21 @@ void FetchStage::setDInput(PipeReg * dreg, uint64_t stat, uint64_t icode,
 * @paam: wreg a pointer to the pipeline register for the writeback stage.
 * @return: the selected program counter value.
 */
-uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mdreg, PipeReg * wreg)
+uint64_t FetchStage::selectPC(PipeReg * freg, PipeReg * mreg, PipeReg * wreg)
 {
-   if (mdreg->get(M_ICODE) == Instruction::IJXX && !mdreg->get(M_CND))
+   uint64_t m_icode = mreg->get(M_ICODE);
+   uint64_t w_icode = wreg->get(W_ICODE);
+
+   if (m_icode == Instruction::IJXX && !mreg->get(M_CND))
    {
-      return mdreg->get(M_VALA);
+      return mreg->get(M_VALA);
    }
-   if (wreg->get(W_ICODE) == Instruction::IRET) 
+   if (w_icode == Instruction::IRET) 
    {
       return wreg->get(W_VALM);
    }
    return freg->get(F_PREDPC);
 }
-
-
 
 /**
 * need_regids
@@ -170,9 +171,9 @@ bool FetchStage::need_regids(uint64_t f_icode)
    if (f_icode == Instruction::IRRMOVQ || f_icode == Instruction::IOPQ || f_icode == Instruction::IPUSHQ
       || f_icode ==  Instruction::IPOPQ || f_icode ==  Instruction::IIRMOVQ || f_icode ==  Instruction::IRMMOVQ
       || f_icode == Instruction::IMRMOVQ)
-      {
-         return true;
-      }
+   {
+      return true;
+   }
    return false;
 }
 
@@ -191,7 +192,6 @@ bool FetchStage::need_valC(uint64_t f_icode)
    {
       return true;
    }
-
    return false;
 }
 
@@ -225,23 +225,16 @@ uint64_t FetchStage::predictPC(uint64_t f_icode, uint64_t f_valC, uint64_t f_val
 */
 uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
 {
-   if (needRegIds && needValC)
-   {
-      return f_pc + 10;
-   }
-   else if (!needRegIds && needValC)
-   {
-      return f_pc + 9;
-   }
-   else if (needRegIds && !needValC)
-   {
-      return f_pc + 2;
-   }
-   else
-   {
-      return f_pc + 1;
-   }
-
+   uint64_t increment = 1;
+    // Adjust increment based on conditions
+    if (needRegIds) {
+        increment += 1;
+    }
+    if (needValC) {
+        increment += 8;
+    }
+    // Apply the increment to the original PC value
+    return f_pc + increment;
 }
 
 /**
@@ -281,6 +274,7 @@ uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
    uint8_t valArray[8];
    if (!needvalC) return 0;
    int32_t addr = f_pc + 1;
+
    if (needRegIds) addr++;
       bool error = false;
          for (int i = 0; i < 8; i++, addr++)
@@ -345,13 +339,17 @@ uint64_t FetchStage::f_stat(bool mem_error, bool i_valid, uint64_t f_icode)
 */
 bool FetchStage::F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
-   if (((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
+   uint64_t e_icode = ereg->get(E_ICODE);
+   uint64_t d_icode = dreg->get(D_ICODE);
+   uint64_t m_icode = mreg->get(M_ICODE);
+
+   if (((e_icode == Instruction::IMRMOVQ || e_icode == Instruction::IPOPQ)
    && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB)) 
-   || (Instruction::IRET == dreg->get(D_ICODE) || Instruction::IRET == ereg->get(E_ICODE) || Instruction::IRET == mreg->get(M_ICODE)))
+   || (Instruction::IRET == d_icode || Instruction::IRET == e_icode 
+   || Instruction::IRET == m_icode))
    {
       return true;
    }
-
    return false;
 }
 
@@ -384,10 +382,12 @@ bool FetchStage::D_stall(PipeReg * ereg)
 bool FetchStage::getD_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
    return ((ereg->get(E_ICODE) == Instruction::IJXX && !Stage::e_Cnd) 
-      || (!((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
-      && (Instruction::IRET == dreg->get(D_ICODE) || Instruction::IRET == ereg->get(E_ICODE) || Instruction::IRET == mreg->get(M_ICODE))));
-
+      || (!((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ) 
+      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+      && (Instruction::IRET == dreg->get(D_ICODE) || Instruction::IRET == ereg->get(E_ICODE) 
+      || Instruction::IRET == mreg->get(M_ICODE))));
 }
+
 /**
 * calculateControlSignals 
 * Calls each of the two methods that calculates F_stall and D_stall.
@@ -397,7 +397,7 @@ bool FetchStage::getD_bubble(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 * @param: mreg a pointer to the pipeline register for the fetch stage.
 * @return: the calculated values for F_stall and D_stall
 */
-uint64_t FetchStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
+void FetchStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 {
    f_stall = F_stall(ereg, dreg, mreg);
    d_stall = D_stall(ereg);

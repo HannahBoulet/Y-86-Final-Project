@@ -11,6 +11,7 @@
 #include "M.h"
 #include "W.h"
 #include "Status.h"
+
 /**
  * doClockLow
  *
@@ -155,13 +156,12 @@ uint64_t ExecuteStage::aluB(PipeReg * ereg)
    {
       return 0;
    }
-
    return 0;
 }
 /**
  * aluFun
  * Determines the ALU operation code based on the instruction code.
- * @param ereg Pointer to the pipeline register containing relevant information.
+ * @param: ereg Pointer to the pipeline register containing relevant information.
  * @return The ALU operation code.
  */
 
@@ -172,7 +172,6 @@ uint64_t ExecuteStage::aluFun(PipeReg * ereg)
    {
       return ereg->get(E_IFUN);
    }
-
    return Instruction::ADDQ;
 }
 
@@ -187,19 +186,20 @@ bool ExecuteStage::set_cc(PipeReg * ereg, PipeReg * wreg)
 {
    uint64_t icode = ereg->get(E_ICODE);
    uint64_t w_stat = wreg->get(W_STAT);
-   if ((icode == Instruction::IOPQ) && (Stage::m_stat != Status::SADR && Stage::m_stat != Status::SINS && Stage::m_stat != Status::SHLT ) 
-      && (w_stat != Status::SADR && w_stat != Status::SINS && w_stat != Status::SHLT))
+   if ((icode == Instruction::IOPQ) && (Stage::m_stat != Status::SADR && Stage::m_stat != Status::SINS 
+      && Stage::m_stat != Status::SHLT) && (w_stat != Status::SADR && w_stat != Status::SINS 
+      && w_stat != Status::SHLT))
    {
       return true;
    }
-
    return false;
 }
+
 /**
  * set_dstE
  * Sets the destination register for the result of the ALU operation based on the instruction code and condition.
- * @param ereg Pointer to the pipeline register containing relevant information.
- * @param cnd Condition indicating whether to set the destination register.
+ * @param: ereg Pointer to the pipeline register containing relevant information.
+ * @param: cnd Condition indicating whether to set the destination register.
  * @return The destination register for the result of the ALU operation.
  */
 
@@ -212,6 +212,7 @@ uint64_t ExecuteStage::set_dstE(PipeReg * ereg, uint64_t cnd)
    } 
    return ereg->get(E_DSTE);
 }
+
 /**
  * getALU
  * Performs the Arithmetic Logic Unit (ALU) operation based on the specified function code.
@@ -222,31 +223,27 @@ uint64_t ExecuteStage::set_dstE(PipeReg * ereg, uint64_t cnd)
  */
 uint64_t ExecuteStage::getALU(uint64_t aluA, uint64_t aluB, uint64_t alufun)
 {
-   if(alufun == Instruction::ADDQ)
-   {
-      return aluA + aluB;
-   }
-   if(alufun == Instruction::SUBQ)
-   {
-      return aluB - aluA;
-   }
-
-   if(alufun == Instruction::ANDQ)
-   {
-      return aluA & aluB;
-   }
-   else
-   {
-      return aluA ^ aluB;
+   switch (alufun) {
+        case Instruction::ADDQ:
+            return aluA + aluB;
+        case Instruction::SUBQ:
+            return aluB - aluA;
+        case Instruction::ANDQ:
+            return aluA & aluB;
+        case Instruction::XORQ:
+            return aluA ^ aluB;
+        default:
+            return 0;
    }
 }
+
 /**
  * CC
  * Updates the condition codes based on the executed ALU operation and values.
- * @param valE The value computed by the ALU.
- * @param aluA The first ALU operand.
- * @param aluB The second ALU operand.
- * @param aluFun The ALU function code indicating the operation type.
+ * @param: valE The value computed by the ALU.
+ * @param: aluA The first ALU operand.
+ * @param: aluB The second ALU operand.
+ * @param: aluFun The ALU function code indicating the operation type.
  */
 void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluFun)
 {
@@ -264,6 +261,7 @@ void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluF
    }
    cc->setConditionCode(!valE, ConditionCodes::ZF, error); 
 }
+
 /**
  * CondFun
  * Determines the condition for executing a specific stage based on instruction and function codes.
@@ -278,57 +276,58 @@ bool ExecuteStage::CondFun(uint64_t icode, uint64_t ifun)
    bool of = cc->getConditionCode(ConditionCodes::OF, error);
    bool zf = cc->getConditionCode(ConditionCodes::ZF, error);
    
-   if (icode ==  Instruction::IJXX || icode == Instruction::ICMOVXX) 
-   {
-      if (ifun == Instruction::UNCOND) 
-      {
-         return 1;
-      }
-      if (ifun == Instruction::LESSEQ) 
-      {
-         return (sf ^ of) | zf;
-      }
-      if (ifun == Instruction::LESS) 
-      {
-         return (sf ^ of);
-      }
-      if (ifun == Instruction::EQUAL) 
-      {
-         return zf;
-      }
-      if (ifun == Instruction::NOTEQUAL) 
-      {
-         return !zf;
-      }
-      if (ifun == Instruction::GREATER) 
-      {
-         return !(sf ^ of) & !zf;
-      }
-      if (ifun == Instruction::GREATEREQ) 
-      {
-         return !(sf ^ of);
-      }
-   }
-   return 0;
+   bool result = false;
+
+    switch (icode) {
+        case Instruction::IJXX:
+        case Instruction::ICMOVXX:
+            switch (ifun) {
+                case Instruction::UNCOND:
+                    result = true;
+                    break;
+                case Instruction::LESSEQ:
+                    result = (sf ^ of) | zf;
+                    break;
+                case Instruction::LESS:
+                    result = (sf ^ of);
+                    break;
+                case Instruction::EQUAL:
+                    result = zf;
+                    break;
+                case Instruction::NOTEQUAL:
+                    result = !zf;
+                    break;
+                case Instruction::GREATER:
+                    result = !(sf ^ of) & !zf;
+                    break;
+                case Instruction::GREATEREQ:
+                    result = !(sf ^ of);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return result;
 }
 
-
 /**
-bool M_bubble = m_stat in { SADR, SINS, SHLT } || W_stat in { SADR, SINS, SHLT };
+* calculateControlSignals
+* Calculates the control signals for the Execute stage.
+*
+ * @param: wreg Pointer to the Writeback Stage pipeline register.
+ * @return: true if a bubble should be used in the Execute stage, false otherwise.
 */
-
-/*
-calculateControlSignals
-
-*/
-
 bool ExecuteStage::calculateControlSignals(PipeReg * wreg)
 {
    uint64_t w_stat = wreg->get(W_STAT);
    if ((Stage::m_stat == Status::SADR || Stage::m_stat == Status::SINS || Stage::m_stat == Status::SHLT) 
-   || (w_stat == Status::SADR ||w_stat == Status::SINS ||w_stat == Status::SHLT))
-         {
+   || (w_stat == Status::SADR ||w_stat == Status::SINS || w_stat == Status::SHLT))
+   {
             return true;
-         }
+   }
    return false;
 }
