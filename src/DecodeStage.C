@@ -113,7 +113,7 @@ uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
    uint64_t icode = dreg->get(D_ICODE);
 
    if(icode == Instruction::IRRMOVQ || icode == Instruction::IRMMOVQ || icode == Instruction::IOPQ 
-   || icode == Instruction::IPUSHQ)
+      || icode == Instruction::IPUSHQ)
    {
       return dreg->get(D_RA);
    }

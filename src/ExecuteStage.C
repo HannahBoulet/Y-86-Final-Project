@@ -325,7 +325,7 @@ bool ExecuteStage::calculateControlSignals(PipeReg * wreg)
 {
    uint64_t w_stat = wreg->get(W_STAT);
    if ((Stage::m_stat == Status::SADR || Stage::m_stat == Status::SINS || Stage::m_stat == Status::SHLT) 
-   || (w_stat == Status::SADR ||w_stat == Status::SINS || w_stat == Status::SHLT))
+      || (w_stat == Status::SADR ||w_stat == Status::SINS || w_stat == Status::SHLT))
    {
             return true;
    }

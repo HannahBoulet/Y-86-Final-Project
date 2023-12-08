@@ -99,10 +99,10 @@ void FetchStage::doClockHigh(PipeRegArray * pipeRegs)
    }
    else
    {
-   if (!d_stall)
-   {
-      dreg->normal();
-   }
+      if (!d_stall)
+      {
+         dreg->normal();
+      }
    }
 }
 
@@ -226,14 +226,14 @@ uint64_t FetchStage::predictPC(uint64_t f_icode, uint64_t f_valC, uint64_t f_val
 uint64_t FetchStage::PCincrement(uint64_t f_pc, bool needRegIds, bool needValC)
 {
    uint64_t increment = 1;
-    // Adjust increment based on conditions
-    if (needRegIds) {
+    if (needRegIds) 
+    {
         increment += 1;
     }
-    if (needValC) {
+    if (needValC) 
+    {
         increment += 8;
     }
-    // Apply the increment to the original PC value
     return f_pc + increment;
 }
 
@@ -293,7 +293,7 @@ uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegIds, bool needvalC)
 */
 bool FetchStage::instr_valid(uint64_t icode)
 {
-   return (icode == Instruction::INOP ||  icode == Instruction::IHALT 
+   return (icode == Instruction::INOP || icode == Instruction::IHALT 
           || icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ 
           || icode == Instruction::IRMMOVQ || icode == Instruction::IMRMOVQ 
           || icode == Instruction::IOPQ || icode == Instruction::IJXX
@@ -344,9 +344,9 @@ bool FetchStage::F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
    uint64_t m_icode = mreg->get(M_ICODE);
 
    if (((e_icode == Instruction::IMRMOVQ || e_icode == Instruction::IPOPQ)
-   && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB)) 
-   || (Instruction::IRET == d_icode || Instruction::IRET == e_icode 
-   || Instruction::IRET == m_icode))
+      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB)) 
+      || (Instruction::IRET == d_icode || Instruction::IRET == e_icode 
+      || Instruction::IRET == m_icode))
    {
       return true;
    }
@@ -364,7 +364,7 @@ bool FetchStage::F_stall(PipeReg * ereg, PipeReg * dreg, PipeReg * mreg)
 bool FetchStage::D_stall(PipeReg * ereg)
 {
    if ((ereg->get(E_ICODE) == Instruction::IMRMOVQ || ereg->get(E_ICODE) == Instruction::IPOPQ)
-   && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
+      && (ereg->get(E_DSTM) == Stage::d_srcA || ereg->get(E_DSTM) == Stage::d_srcB))
    {
       return true;
    }
@@ -402,8 +402,4 @@ void FetchStage::calculateControlSignals(PipeReg * ereg, PipeReg * dreg, PipeReg
    f_stall = F_stall(ereg, dreg, mreg);
    d_stall = D_stall(ereg);
    D_bubble = getD_bubble(ereg, dreg, mreg);
-
 }
-
-
-
