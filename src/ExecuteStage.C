@@ -45,7 +45,7 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 
    uint64_t valE = getALU(V_aluA, V_aluB, fun);
 
-   if(set_cc(ereg, wreg))
+   if (set_cc(ereg, wreg))
    {
       CC(valE, V_aluA, V_aluB, fun);
    }
@@ -70,7 +70,7 @@ bool ExecuteStage::doClockLow(PipeRegArray * pipeRegs)
 void ExecuteStage::doClockHigh(PipeRegArray * pipeRegs)
 {
    PipeReg * mreg  = pipeRegs->getMemoryReg();
-   if(!M_bubble)
+   if (!M_bubble)
    {
       mreg->normal();
    }
@@ -206,7 +206,7 @@ bool ExecuteStage::set_cc(PipeReg * ereg, PipeReg * wreg)
 uint64_t ExecuteStage::set_dstE(PipeReg * ereg, uint64_t cnd)
 {
    uint64_t icode = ereg->get(E_ICODE);
-   if((icode == Instruction::IRRMOVQ) && !cnd)
+   if ((icode == Instruction::IRRMOVQ) && !cnd)
    {
       return RegisterFile::RNONE;
    } 
@@ -251,11 +251,11 @@ void ExecuteStage::CC(uint64_t valE, uint64_t aluA, uint64_t aluB, uint64_t aluF
 
    cc->setConditionCode(Tools::sign(valE), ConditionCodes::SF, error);
 
-   if(aluFun == Instruction::ADDQ)
+   if (aluFun == Instruction::ADDQ)
    {
       cc->setConditionCode(Tools::addOverflow(aluA,aluB), ConditionCodes::OF, error);
    }
-   else if(aluFun == Instruction::SUBQ)
+   else if (aluFun == Instruction::SUBQ)
    {
       cc->setConditionCode(Tools::subOverflow(aluA,aluB), ConditionCodes::OF, error);
    }

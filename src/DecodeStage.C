@@ -112,12 +112,12 @@ uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
 
-   if(icode == Instruction::IRRMOVQ || icode == Instruction::IRMMOVQ || icode == Instruction::IOPQ 
+   if (icode == Instruction::IRRMOVQ || icode == Instruction::IRMMOVQ || icode == Instruction::IOPQ 
       || icode == Instruction::IPUSHQ)
    {
       return dreg->get(D_RA);
    }
-   if(icode == Instruction::IPOPQ || icode == Instruction::IRET)
+   if (icode == Instruction::IPOPQ || icode == Instruction::IRET)
    {
       return RegisterFile::rsp;
    }
@@ -133,11 +133,11 @@ uint64_t DecodeStage::d_srcAFun(PipeReg * dreg)
 uint64_t DecodeStage::d_srcBFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
-   if(icode == Instruction::IOPQ  || icode == Instruction::IRMMOVQ || icode==Instruction::IMRMOVQ)
+   if (icode == Instruction::IOPQ  || icode == Instruction::IRMMOVQ || icode==Instruction::IMRMOVQ)
    {
       return dreg->get(D_RB);
    }
-   if(icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ || icode == Instruction::ICALL 
+   if (icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ || icode == Instruction::ICALL 
       || icode == Instruction::IRET)
    {
       return RegisterFile::rsp;
@@ -155,11 +155,11 @@ uint64_t DecodeStage::d_dstEFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
 
-   if(icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ || icode == Instruction::IOPQ)
+   if (icode == Instruction::IRRMOVQ || icode == Instruction::IIRMOVQ || icode == Instruction::IOPQ)
    {
       return dreg->get(D_RB);
    }
-   if(icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ 
+   if (icode == Instruction::IPUSHQ || icode == Instruction::IPOPQ 
       || icode == Instruction::ICALL || icode == Instruction::IRET)
    {
       return RegisterFile::rsp;
@@ -177,7 +177,7 @@ uint64_t DecodeStage::d_dstMFun(PipeReg * dreg)
 {
    uint64_t icode = dreg->get(D_ICODE);
 
-   if(icode == Instruction::IMRMOVQ || icode == Instruction::IPOPQ)
+   if (icode == Instruction::IMRMOVQ || icode == Instruction::IPOPQ)
    {
       return dreg->get(D_RA);
    }
@@ -242,7 +242,7 @@ uint64_t DecodeStage::FwdBFun(PipeReg * mreg, PipeReg * wreg, uint64_t srcB)
    {
       return 0;
    }
-   if(srcB == Stage::e_dstE)
+   if (srcB == Stage::e_dstE)
    {
       return Stage::e_valE;
    }

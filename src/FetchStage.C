@@ -43,7 +43,7 @@ bool FetchStage::doClockLow(PipeRegArray * pipeRegs)
    uint64_t f_pc = selectPC(freg, mreg, wreg);
    uint64_t inst = mem->getByte(f_pc, mem_error);
 
-   if(mem_error)
+   if (mem_error)
    {
       icode = Instruction::INOP;
       ifun = Instruction::FNONE;
@@ -93,7 +93,7 @@ void FetchStage::doClockHigh(PipeRegArray * pipeRegs)
    {
       freg->normal();
    }
-   if(D_bubble)
+   if (D_bubble)
    {
       ((D *)dreg)->bubble();
    }
@@ -312,15 +312,15 @@ bool FetchStage::instr_valid(uint64_t icode)
 */
 uint64_t FetchStage::f_stat(bool mem_error, bool i_valid, uint64_t f_icode)
 {
-   if(mem_error)
+   if (mem_error)
    {
       return Status::SADR;
    }
-   if(!i_valid)
+   if (!i_valid)
    {
       return Status::SINS;
    }
-   if(f_icode == Instruction::IHALT)
+   if (f_icode == Instruction::IHALT)
    {
       return Status::SHLT;
    }

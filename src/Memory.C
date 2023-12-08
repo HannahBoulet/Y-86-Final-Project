@@ -25,7 +25,10 @@ Memory::Memory()
  */
 Memory * Memory::getInstance()
 {
-   if(memInstance == NULL) memInstance = new Memory();
+   if(memInstance == NULL)
+   {
+      memInstance = new Memory();
+   }
    return memInstance;
 }
 
@@ -144,7 +147,7 @@ void Memory::dump()
    for (i = 0; i < Memory::size; i+=32)
    {
       //get the values for the current line
-      for (int32_t j = 0; j < 4; j++) currLine[j] = getLong(i+j*8, mem_error);
+      for (int32_t j = 0; j < 4; j++) currLine[j] = getLong(i + j * 8, mem_error);
 
       //if values are same as previous don't dispaly except first line
       if (i == 0 || currLine[0] != prevLine[0] || currLine[1] != prevLine[1] 
